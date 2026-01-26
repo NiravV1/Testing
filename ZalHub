@@ -397,16 +397,16 @@ function library:Window(name)
         -- 1PX PADDING ONLY
         utility.create("UIPadding", {
             Parent = leftCol,
-            PaddingLeft = UDim.new(0, -15),  -- Changed from -10 to -15
-            PaddingRight = UDim.new(0, -15), -- Changed from -10 to -15
+            PaddingLeft = UDim.new(0, 1),
+            PaddingRight = UDim.new(0, 1),
             PaddingTop = UDim.new(0, 10),
             PaddingBottom = UDim.new(0, 10)
         })
 
         utility.create("UIPadding", {
             Parent = rightCol,
-            PaddingLeft = UDim.new(0, -15),  -- Changed from -10 to -15
-            PaddingRight = UDim.new(0, -15), -- Changed from -10 to -15
+            PaddingLeft = UDim.new(0, 1),
+            PaddingRight = UDim.new(0, 1),
             PaddingTop = UDim.new(0, 10),
             PaddingBottom = UDim.new(0, 10)
         })
@@ -499,7 +499,7 @@ function library:Window(name)
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, -15),  -- Changed from -10 to -15
+                Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
