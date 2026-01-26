@@ -39,7 +39,7 @@ function utility.tween(obj, info, props)
     return tween
 end
 
--- UPDATED DRAGIFY: Accepts 'inputFrame' to restrict dragging to specific area (like the top bar)
+-- UPDATED DRAGIFY: Accepts 'inputFrame' to restrict dragging to specific area (like top bar)
 function utility.dragify(object, inputFrame)
     local dragging, dragInput, dragStart, startPos
     local targetInput = inputFrame or object -- If no specific input frame, object handles input
@@ -191,6 +191,69 @@ function library:Window(name)
         Parent = gui
     })
 
+    -- ==========================================
+    -- TOGGLE GUI / WATERMARK
+    -- ==========================================
+    local toggleGui = Instance.new("ScreenGui")
+    toggleGui.Name = "ZalHub_Toggle"
+    toggleGui.Parent = game:GetService("CoreGui")
+    toggleGui.ResetOnSpawn = false
+    toggleGui.DisplayOrder = 999 -- Ensure it stays on top
+
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Name = "ToggleBtn"
+    toggleBtn.Size = UDim2.new(0, 110, 0, 30)
+    toggleBtn.Position = UDim2.new(0, 20, 0, 10) -- Top Left
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = "ZalHub [ON]"
+    toggleBtn.TextColor3 = library.accent
+    toggleBtn.Font = Enum.Font.Code
+    toggleBtn.TextSize = 14
+    toggleBtn.ZIndex = 100
+    toggleBtn.Parent = toggleGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 5)
+    corner.Parent = toggleBtn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = library.accent
+    stroke.Thickness = 1
+    stroke.Parent = toggleBtn
+
+    local isOpen = true
+
+    local function toggleWindow()
+        isOpen = not isOpen
+        holder.Visible = isOpen
+        
+        if isOpen then
+            toggleBtn.Text = "ZalHub [ON]"
+            toggleBtn.TextColor3 = library.accent
+            stroke.Color = library.accent
+        else
+            toggleBtn.Text = "ZalHub [OFF]"
+            toggleBtn.TextColor3 = Color3.fromRGB(80, 80, 80)
+            stroke.Color = Color3.fromRGB(80, 80, 80)
+        end
+    end
+
+    -- Click to toggle
+    toggleBtn.MouseButton1Click:Connect(toggleWindow)
+
+    -- Keybind to toggle (Right Shift)
+    services.UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.RightShift then
+            toggleWindow()
+        end
+    end)
+
+    -- Make watermark draggable
+    utility.dragify(toggleBtn, toggleBtn)
+    -- ==========================================
+
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
         Position = UDim2.new(0, -2, 0, -2),
@@ -266,7 +329,7 @@ function library:Window(name)
         Parent = mainBG
     })
 
-    -- UPDATED: Pass topBar as second argument so ONLY top bar drags the window
+    -- UPDATED: Pass topBar as second argument so ONLY top bar drags window
     utility.dragify(holder, topBar)
 
     local currentTab = nil
