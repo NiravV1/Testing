@@ -369,9 +369,9 @@ function library:Window(name)
             Parent = content
         })
 
-        -- REDUCED GAP BETWEEN COLUMNS (from 30px → 20px total gap)
+        -- EVEN SMALLER GAP (~10px total between columns)
         local leftCol = utility.create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -10, 1, 0),  -- Reduced offset
+            Size = UDim2.new(0.5, -5, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             ScrollBarThickness = 6,
@@ -383,8 +383,8 @@ function library:Window(name)
         leftCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
         local rightCol = utility.create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -10, 1, 0),
-            Position = UDim2.new(0.5, 10, 0, 0),  -- Reduced offset
+            Size = UDim2.new(0.5, -5, 1, 0),
+            Position = UDim2.new(0.5, 5, 0, 0),
             BackgroundTransparency = 1,
             ScrollBarThickness = 6,
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
@@ -394,19 +394,19 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- REDUCED COLUMN PADDING SLIGHTLY FOR WIDER FEEL
+        -- MINIMAL COLUMN PADDING FOR MAX WIDTH
         utility.create("UIPadding", {
             Parent = leftCol,
-            PaddingLeft = UDim.new(0, 10),
-            PaddingRight = UDim.new(0, 10),
+            PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8),
             PaddingTop = UDim.new(0, 15),
             PaddingBottom = UDim.new(0, 15)
         })
 
         utility.create("UIPadding", {
             Parent = rightCol,
-            PaddingLeft = UDim.new(0, 10),
-            PaddingRight = UDim.new(0, 10),
+            PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8),
             PaddingTop = UDim.new(0, 15),
             PaddingBottom = UDim.new(0, 15)
         })
@@ -466,20 +466,20 @@ function library:Window(name)
             local targetCol = currentSectionIndex % 2 == 0 and leftCol or rightCol
             currentSectionIndex = currentSectionIndex + 1
 
-            -- MADE SECTIONS WIDER (less inset: from -30 → -20)
+            -- MAXIMUM WIDTH: almost no inset
             local sectionFrame = utility.create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
                 AutomaticSize = Enum.AutomaticSize.Y,
-                Size = UDim2.new(1, -20, 0, 0),  -- Wider sections
+                Size = UDim2.new(1, -10, 0, 0),  -- Super wide sections
                 ZIndex = 4,
                 Parent = targetCol
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
             utility.create("TextLabel", {
-                Size = UDim2.new(1, -20, 0, 35),
-                Position = UDim2.new(0, 10, 0, 0),
+                Size = UDim2.new(1, -10, 0, 35),
+                Position = UDim2.new(0, 5, 0, 0),
                 BackgroundTransparency = 1,
                 Text = sectionName:upper(),
                 TextColor3 = library.accent,
@@ -491,8 +491,8 @@ function library:Window(name)
             })
 
             local items = utility.create("Frame", {
-                Size = UDim2.new(1, -20, 0, 0),
-                Position = UDim2.new(0, 10, 0, 35),
+                Size = UDim2.new(1, -10, 0, 0),
+                Position = UDim2.new(0, 5, 0, 35),
                 BackgroundTransparency = 1,
                 AutomaticSize = Enum.AutomaticSize.Y,
                 ZIndex = 5,
@@ -505,9 +505,6 @@ function library:Window(name)
             })
 
             local sectionActions = {}
-
-            -- All your element functions remain the same (Toggle, Textbox, Dropdown, Slider, Button)
-            -- ... (unchanged from previous version)
 
             function sectionActions:Toggle(text, flag, callback)
                 local toggle = utility.create("TextButton", {
