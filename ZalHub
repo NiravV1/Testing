@@ -193,7 +193,7 @@ function library:Window(name)
 
     local holder = utility.create("Frame", {
         Name = "Holder",
-        Size = UDim2.new(0, 750, 0, 550),  -- Slightly wider window for even more space
+        Size = UDim2.new(0, 750, 0, 550),
         Position = UDim2.new(0.5, -375, 0.5, -275),
         BackgroundColor3 = Color3.fromRGB(10, 10, 10),
         BorderSizePixel = 0,
@@ -325,7 +325,6 @@ function library:Window(name)
         Parent = tabContainer
     })
 
-    -- Made content area wider (less side padding)
     local content = utility.create("Frame", {
         Size = UDim2.new(1, -20, 1, -80),
         Position = UDim2.new(0, 10, 0, 65),
@@ -370,7 +369,7 @@ function library:Window(name)
             Parent = content
         })
 
-        -- ZERO GAP BETWEEN COLUMNS
+        -- ZERO GAP (columns touch)
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, 0, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
@@ -395,19 +394,19 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- MINIMAL PADDING INSIDE COLUMNS
+        -- DECREASED PADDING BY ~2px (was 5 → 3px left/right)
         utility.create("UIPadding", {
             Parent = leftCol,
-            PaddingLeft = UDim.new(0, 5),
-            PaddingRight = UDim.new(0, 5),
+            PaddingLeft = UDim.new(0, 3),
+            PaddingRight = UDim.new(0, 3),
             PaddingTop = UDim.new(0, 10),
             PaddingBottom = UDim.new(0, 10)
         })
 
         utility.create("UIPadding", {
             Parent = rightCol,
-            PaddingLeft = UDim.new(0, 5),
-            PaddingRight = UDim.new(0, 5),
+            PaddingLeft = UDim.new(0, 3),
+            PaddingRight = UDim.new(0, 3),
             PaddingTop = UDim.new(0, 10),
             PaddingBottom = UDim.new(0, 10)
         })
@@ -416,7 +415,7 @@ function library:Window(name)
             FillDirection = Enum.FillDirection.Vertical,
             HorizontalAlignment = Enum.HorizontalAlignment.Left,
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 10),  -- Slightly less vertical space between sections
+            Padding = UDim.new(0, 10),
             Parent = leftCol
         })
 
@@ -467,7 +466,6 @@ function library:Window(name)
             local targetCol = currentSectionIndex % 2 == 0 and leftCol or rightCol
             currentSectionIndex = currentSectionIndex + 1
 
-            -- FULL WIDTH SECTIONS (no inset)
             local sectionFrame = utility.create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
@@ -478,10 +476,10 @@ function library:Window(name)
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
-            -- Minimal inner padding
+            -- DECREASED INNER PADDING BY ~2px (was 5 → 3px)
             utility.create("TextLabel", {
-                Size = UDim2.new(1, -10, 0, 35),
-                Position = UDim2.new(0, 5, 0, 0),
+                Size = UDim2.new(1, -6, 0, 35),
+                Position = UDim2.new(0, 3, 0, 0),
                 BackgroundTransparency = 1,
                 Text = sectionName:upper(),
                 TextColor3 = library.accent,
@@ -493,22 +491,20 @@ function library:Window(name)
             })
 
             local items = utility.create("Frame", {
-                Size = UDim2.new(1, -10, 0, 0),
-                Position = UDim2.new(0, 5, 0, 35),
+                Size = UDim2.new(1, -6, 0, 0),
+                Position = UDim2.new(0, 3, 0, 35),
                 BackgroundTransparency = 1,
                 AutomaticSize = Enum.AutomaticSize.Y,
                 ZIndex = 5,
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, 8),  -- Less space between elements
+                Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
 
             local sectionActions = {}
-
-            -- (All your element functions: Toggle, Textbox, Dropdown, Slider, Button remain exactly the same)
 
             function sectionActions:Toggle(text, flag, callback)
                 local toggle = utility.create("TextButton", {
