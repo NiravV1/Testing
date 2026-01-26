@@ -4,7 +4,6 @@ until game:IsLoaded()
 
 local library = {
     flags = {},
-    -- UPDATED ACCENT: Slightly brighter/more vibrant
     accent = Color3.fromRGB(120, 50, 255), 
     outline = { Color3.fromRGB(120, 50, 255), Color3.fromRGB(210, 60, 140) },
     toggled = true,
@@ -40,7 +39,6 @@ function utility.tween(obj, info, props)
     return tween
 end
 
--- UPDATED DRAGIFY: Accepts 'inputFrame' to restrict dragging to specific area (like top bar)
 function utility.dragify(object, inputFrame)
     local dragging, dragInput, dragStart, startPos
     local targetInput = inputFrame or object 
@@ -102,8 +100,8 @@ function library:Notify(options)
     local notifyFrame = utility.create("Frame", {
         Size = UDim2.new(0, 240, 0, 0),
         Position = UDim2.new(1, 270, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(20, 20, 25), -- Darker Notify BG
-        BackgroundTransparency = 0.1, -- Transparent
+        BackgroundColor3 = Color3.fromRGB(20, 20, 25), 
+        BackgroundTransparency = 0.1,
         BorderSizePixel = 0,
         Parent = notifyHolder,
         AnchorPoint = Vector2.new(1,1)
@@ -156,7 +154,7 @@ function library:Notify(options)
         Position = UDim2.new(0, 4, 0, 0),
         BackgroundTransparency = 1,
         Text = options.Content or "Message",
-        TextColor3 = Color3.fromRGB(210, 210, 215), -- Brighter text
+        TextColor3 = Color3.fromRGB(210, 210, 215),
         TextSize = 11,
         Font = Enum.Font.Code,
         TextWrapped = true,
@@ -189,15 +187,12 @@ function library:Window(name)
         Name = "Holder",
         Size = UDim2.new(0, 550, 0, 420),
         Position = UDim2.new(0.5, -275, 0.5, -210),
-        BackgroundColor3 = Color3.fromRGB(12, 12, 15), -- RICH DARK THEME
-        BackgroundTransparency = 0.15, -- TRANSPARENCY
+        BackgroundColor3 = Color3.fromRGB(12, 12, 15), 
+        BackgroundTransparency = 0.15, 
         BorderSizePixel = 0,
         Parent = gui
     })
 
-    -- ==========================================
-    -- TOGGLE GUI / WATERMARK
-    -- ==========================================
     local toggleGui = Instance.new("ScreenGui")
     toggleGui.Name = "ZalHub_Toggle"
     toggleGui.Parent = game:GetService("CoreGui")
@@ -208,7 +203,7 @@ function library:Window(name)
     toggleBtn.Name = "ToggleBtn"
     toggleBtn.Size = UDim2.new(0, 110, 0, 30)
     toggleBtn.Position = UDim2.new(0, 20, 0, 10) 
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(12, 12, 15) -- Match main theme
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(12, 12, 15) 
     toggleBtn.BackgroundTransparency = 0.2
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = "ZalHub [ON]"
@@ -254,7 +249,6 @@ function library:Window(name)
     end)
 
     utility.dragify(toggleBtn, toggleBtn)
-    -- ==========================================
 
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
@@ -280,7 +274,7 @@ function library:Window(name)
 
     local mainBG = utility.create("Frame", {
         Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(18, 18, 22), -- DARK CONTENT BG
+        BackgroundColor3 = Color3.fromRGB(18, 18, 22), 
         BackgroundTransparency = 0.1,
         BorderSizePixel = 0,
         ZIndex = 1,
@@ -289,7 +283,7 @@ function library:Window(name)
 
     local topBar = utility.create("Frame", {
         Size = UDim2.new(1, 0, 0, 35),
-        BackgroundColor3 = Color3.fromRGB(22, 22, 28), -- TOP BAR BG
+        BackgroundColor3 = Color3.fromRGB(22, 22, 28), 
         BackgroundTransparency = 0.0,
         BorderSizePixel = 0,
         ZIndex = 2,
@@ -343,7 +337,7 @@ function library:Window(name)
             Size = UDim2.new(0, 60, 0, 25),
             BackgroundTransparency = 1,
             Text = tabName,
-            TextColor3 = Color3.fromRGB(130, 130, 140), -- Inactive Tab Color
+            TextColor3 = Color3.fromRGB(130, 130, 140),
             TextSize = 13,
             Font = Enum.Font.Code,
             ZIndex = 4,
@@ -374,7 +368,7 @@ function library:Window(name)
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             ScrollBarThickness = 5,
-            ScrollBarImageColor3 = Color3.fromRGB(40, 40, 50), -- DARK SCROLLBAR
+            ScrollBarImageColor3 = Color3.fromRGB(40, 40, 50), 
             ScrollBarImageTransparency = 0.5,
             Visible = true,
             ZIndex = 3,
@@ -428,6 +422,7 @@ function library:Window(name)
             rightCol.Visible = true
             leftCol.CanvasPosition = Vector2.new(0, 0)
             rightCol.CanvasPosition = Vector2.new(0, 0)
+
             task.spawn(function()
                 for i = 1, 5 do
                     updateCanvas()
@@ -447,10 +442,10 @@ function library:Window(name)
             currentSectionIndex = currentSectionIndex + 1
 
             local sectionFrame = utility.create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(20, 20, 25), -- SECTION HEADER BG
-                BackgroundTransparency = 0.2, -- Transparency
+                BackgroundColor3 = Color3.fromRGB(20, 20, 25), 
+                BackgroundTransparency = 0.2, 
                 BorderSizePixel = 1,
-                BorderColor3 = Color3.fromRGB(40, 40, 50), -- Rich Border
+                BorderColor3 = Color3.fromRGB(55, 60, 70), -- Brighter Section Border
                 AutomaticSize = Enum.AutomaticSize.Y,
                 Size = UDim2.new(1, 0, 0, 0),
                 ZIndex = 4,
@@ -497,9 +492,10 @@ function library:Window(name)
                 local box = utility.create("Frame", {
                     Size = UDim2.new(0, 14, 0, 14),
                     Position = UDim2.new(0, 0, 0.5, -7),
-                    BackgroundColor3 = Color3.fromRGB(25, 25, 32), -- CONTROL BG
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 32),
                     BackgroundTransparency = 0.2,
-                    BorderColor3 = Color3.fromRGB(50, 50, 60),
+                    BorderColor3 = Color3.fromRGB(85, 90, 100), -- Brighter Border
+                    BorderSizePixel = 1,
                     ZIndex = 7,
                     Parent = toggle
                 })
@@ -517,7 +513,7 @@ function library:Window(name)
                     Position = UDim2.new(0, 20, 0, 0),
                     BackgroundTransparency = 1,
                     Text = text,
-                    TextColor3 = Color3.fromRGB(200, 200, 210), -- BRIGHTER TEXT
+                    TextColor3 = Color3.fromRGB(200, 200, 210),
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -557,7 +553,7 @@ function library:Window(name)
                     Position = UDim2.new(0, 0, 0, 16),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 32),
                     BackgroundTransparency = 0.2,
-                    BorderColor3 = Color3.fromRGB(50, 50, 60),
+                    BorderColor3 = Color3.fromRGB(85, 90, 100), -- Brighter Border
                     PlaceholderText = placeholder or "...",
                     Text = "",
                     TextColor3 = Color3.fromRGB(220, 220, 225),
@@ -596,24 +592,22 @@ function library:Window(name)
                     Position = UDim2.new(0, 0, 0, 16),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 32),
                     BackgroundTransparency = 0.2,
-                    BorderColor3 = Color3.fromRGB(50, 50, 60),
+                    BorderColor3 = Color3.fromRGB(85, 90, 100), -- Brighter Border
                     Text = "Select...",
-                    TextColor3 = Color3.fromRGB(220, 220, 225),
+                    TextColor3 = Color3.fromRGB(200, 200, 210),
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     ZIndex = 7,
                     Parent = dropdown
                 })
-                
                 local maxDropdownHeight = 150
                 local contentHeight = #list * 18
-
+                
                 local listFrame = utility.create("ScrollingFrame", {
                     Size = UDim2.new(1, 0, 0, contentHeight),
                     Position = UDim2.new(0, 0, 1, 0),
                     BackgroundColor3 = Color3.fromRGB(20, 20, 25),
-                    BackgroundTransparency = 0.2,
-                    BorderColor3 = Color3.fromRGB(40, 40, 50),
+                    BorderColor3 = Color3.fromRGB(85, 90, 100), -- Brighter Border
                     Visible = false,
                     ZIndex = 11,
                     ScrollBarThickness = 4,
@@ -641,6 +635,7 @@ function library:Window(name)
                     local item = utility.create("TextButton", {
                         Size = UDim2.new(1, 0, 0, 18),
                         BackgroundColor3 = Color3.fromRGB(25, 25, 32),
+                        BackgroundTransparency = 0.2,
                         BorderSizePixel = 0,
                         Text = v,
                         TextColor3 = Color3.fromRGB(180, 180, 190),
@@ -683,7 +678,7 @@ function library:Window(name)
                     Position = UDim2.new(0, 0, 0, 18),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 32),
                     BackgroundTransparency = 0.2,
-                    BorderColor3 = Color3.fromRGB(50, 50, 60),
+                    BorderColor3 = Color3.fromRGB(85, 90, 100), -- Brighter Border
                     Text = "",
                     ZIndex = 7,
                     Parent = slider
@@ -738,7 +733,7 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 24),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 32),
                     BackgroundTransparency = 0.2,
-                    BorderColor3 = Color3.fromRGB(50, 50, 60),
+                    BorderColor3 = Color3.fromRGB(85, 90, 100), -- Brighter Border
                     Text = text,
                     TextColor3 = Color3.fromRGB(200, 200, 210),
                     TextSize = 12,
