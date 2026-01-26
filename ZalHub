@@ -48,7 +48,7 @@ function utility.dragify(object, inputFrame)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = object.Position -- Moves the 'object' (the main holder)
+            startPos = object.Position -- Moves 'object' (the main holder)
             
             local connection
             connection = input.Changed:Connect(function()
@@ -374,7 +374,7 @@ function library:Window(name)
             BackgroundTransparency = 1,
             ScrollBarThickness = 5, -- Independent Scrollbar
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
-            Visible = false,
+            Visible = true, -- FIXED: Was false, now true
             ZIndex = 3,
             Parent = tabFrame
         })
@@ -385,7 +385,7 @@ function library:Window(name)
             BackgroundTransparency = 1,
             ScrollBarThickness = 5, -- Independent Scrollbar
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
-            Visible = false,
+            Visible = true, -- FIXED: Was false, now true
             ZIndex = 3,
             Parent = tabFrame
         })
@@ -402,16 +402,14 @@ function library:Window(name)
             Parent = rightCol
         })
 
-        -- FIX: Proper Scrolling Logic using GetPropertyChangedSignal
-        -- This avoids lag and ensures content is visible
+        -- INDEPENDENT SCROLL LOGIC
         local function updateCanvas()
-            leftCol.CanvasSize = UDim2.new(0, 0, 0, leftCol.AbsoluteContentSize.Y)
-            rightCol.CanvasSize = UDim2.new(0, 0, 0, rightCol.AbsoluteContentSize.Y)
+            leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y)
+            rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y)
         end
 
-        -- Connect to the ScrollingFrames AbsoluteContentSize. This is the most reliable way.
-        leftCol:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
-        rightCol:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+        leftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+        rightList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
 
         local function select()
             if currentTab then
@@ -420,13 +418,27 @@ function library:Window(name)
                 utility.tween(currentTab.Line, {0.2}, {BackgroundTransparency = 1})
             end
             tabFrame.Visible = true
+            
+            -- CRITICAL FIXES:
+            -- 1. Force columns visible
+            leftCol.Visible = true
+            rightCol.Visible = true
+            
+            -- 2. Reset Scroll Position to top
+            leftCol.CanvasPosition = Vector2.new(0, 0)
+            rightCol.CanvasPosition = Vector2.new(0, 0)
+
+            -- 3. Force Canvas Update repeatedly to ensure Layout Engine catches up
+            task.spawn(function()
+                for i = 1, 5 do
+                    updateCanvas()
+                    task.wait(0.05)
+                end
+            end)
+
             utility.tween(tabBtn, {0.2}, {TextColor3 = library.accent})
             utility.tween(underline, {0.2}, {BackgroundTransparency = 0})
             currentTab = {Frame = tabFrame, Btn = tabBtn, Line = underline}
-            
-            -- Force update when tab is selected to prevent invisible bug
-            task.wait(0.05) -- Tiny wait for layout engine to detect visibility
-            updateCanvas()
         end
 
         tabBtn.MouseButton1Click:Connect(select)
@@ -454,7 +466,7 @@ function library:Window(name)
                 Size = UDim2.new(1, -10, 0, 25),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Text = sectionName:upper(), -- Fixed to upper() (Standard Lua)
+                Text = sectionName:upper(),
                 TextColor3 = library.accent,
                 TextSize = 13,
                 Font = Enum.Font.Code,
