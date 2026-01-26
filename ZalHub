@@ -193,8 +193,8 @@ function library:Window(name)
 
     local holder = utility.create("Frame", {
         Name = "Holder",
-        Size = UDim2.new(0, 700, 0, 550),
-        Position = UDim2.new(0.5, -350, 0.5, -275),
+        Size = UDim2.new(0, 750, 0, 550),  -- Slightly wider window for even more space
+        Position = UDim2.new(0.5, -375, 0.5, -275),
         BackgroundColor3 = Color3.fromRGB(10, 10, 10),
         BorderSizePixel = 0,
         Parent = gui
@@ -325,9 +325,10 @@ function library:Window(name)
         Parent = tabContainer
     })
 
+    -- Made content area wider (less side padding)
     local content = utility.create("Frame", {
-        Size = UDim2.new(1, -30, 1, -80),
-        Position = UDim2.new(0, 15, 0, 65),
+        Size = UDim2.new(1, -20, 1, -80),
+        Position = UDim2.new(0, 10, 0, 65),
         BackgroundTransparency = 1,
         ZIndex = 2,
         Parent = mainBG
@@ -369,9 +370,9 @@ function library:Window(name)
             Parent = content
         })
 
-        -- EVEN SMALLER GAP (~10px total between columns)
+        -- ZERO GAP BETWEEN COLUMNS
         local leftCol = utility.create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -5, 1, 0),
+            Size = UDim2.new(0.5, 0, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
             ScrollBarThickness = 6,
@@ -383,8 +384,8 @@ function library:Window(name)
         leftCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
         local rightCol = utility.create("ScrollingFrame", {
-            Size = UDim2.new(0.5, -5, 1, 0),
-            Position = UDim2.new(0.5, 5, 0, 0),
+            Size = UDim2.new(0.5, 0, 1, 0),
+            Position = UDim2.new(0.5, 0, 0, 0),
             BackgroundTransparency = 1,
             ScrollBarThickness = 6,
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
@@ -394,28 +395,28 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- MINIMAL COLUMN PADDING FOR MAX WIDTH
+        -- MINIMAL PADDING INSIDE COLUMNS
         utility.create("UIPadding", {
             Parent = leftCol,
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 15),
-            PaddingBottom = UDim.new(0, 15)
+            PaddingLeft = UDim.new(0, 5),
+            PaddingRight = UDim.new(0, 5),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
         })
 
         utility.create("UIPadding", {
             Parent = rightCol,
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 15),
-            PaddingBottom = UDim.new(0, 15)
+            PaddingLeft = UDim.new(0, 5),
+            PaddingRight = UDim.new(0, 5),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
         })
 
         local leftList = utility.create("UIListLayout", {
             FillDirection = Enum.FillDirection.Vertical,
             HorizontalAlignment = Enum.HorizontalAlignment.Left,
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 15),
+            Padding = UDim.new(0, 10),  -- Slightly less vertical space between sections
             Parent = leftCol
         })
 
@@ -423,13 +424,13 @@ function library:Window(name)
             FillDirection = Enum.FillDirection.Vertical,
             HorizontalAlignment = Enum.HorizontalAlignment.Left,
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 15),
+            Padding = UDim.new(0, 10),
             Parent = rightCol
         })
 
         local function updateCanvas()
-            leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y + 30)
-            rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y + 30)
+            leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y + 20)
+            rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y + 20)
         end
 
         leftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
@@ -466,17 +467,18 @@ function library:Window(name)
             local targetCol = currentSectionIndex % 2 == 0 and leftCol or rightCol
             currentSectionIndex = currentSectionIndex + 1
 
-            -- MAXIMUM WIDTH: almost no inset
+            -- FULL WIDTH SECTIONS (no inset)
             local sectionFrame = utility.create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
                 AutomaticSize = Enum.AutomaticSize.Y,
-                Size = UDim2.new(1, -10, 0, 0),  -- Super wide sections
+                Size = UDim2.new(1, 0, 0, 0),
                 ZIndex = 4,
                 Parent = targetCol
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
+            -- Minimal inner padding
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -10, 0, 35),
                 Position = UDim2.new(0, 5, 0, 0),
@@ -499,12 +501,14 @@ function library:Window(name)
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, 10),
+                Padding = UDim.new(0, 8),  -- Less space between elements
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
 
             local sectionActions = {}
+
+            -- (All your element functions: Toggle, Textbox, Dropdown, Slider, Button remain exactly the same)
 
             function sectionActions:Toggle(text, flag, callback)
                 local toggle = utility.create("TextButton", {
