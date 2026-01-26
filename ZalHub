@@ -39,13 +39,16 @@ function utility.tween(obj, info, props)
     return tween
 end
 
-function utility.dragify(object)
+-- UPDATED DRAG LOGIC: Accepts a 'targetObj' to move, while 'dragObj' detects clicks
+function utility.dragify(dragObj, targetObj)
+    targetObj = targetObj or dragObj -- Default: Move itself if not specified
     local dragging, dragInput, dragStart, startPos
-    object.InputBegan:Connect(function(input)
+    
+    dragObj.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = object.Position
+            startPos = targetObj.Position -- Move the target (the window holder)
             
             local connection
             connection = input.Changed:Connect(function()
@@ -56,15 +59,17 @@ function utility.dragify(object)
             end)
         end
     end)
-    object.InputChanged:Connect(function(input)
+    
+    dragObj.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
+    
     services.UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            object.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            targetObj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 end
@@ -187,7 +192,8 @@ function library:Window(name)
         BorderSizePixel = 0,
         Parent = gui
     })
-    utility.dragify(holder)
+    -- PASS 'holder' as the TARGET, but drag initiated from topBar later
+    -- utility.dragify(holder) -- REMOVED THIS LINE
 
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
@@ -220,12 +226,16 @@ function library:Window(name)
     })
 
     local topBar = utility.create("Frame", {
+        Name = "TopBar",
         Size = UDim2.new(1, 0, 0, 35),
         BackgroundColor3 = Color3.fromRGB(20, 20, 20),
         BorderSizePixel = 0,
         ZIndex = 2,
         Parent = mainBG
     })
+
+    -- ADDED: DRAGGABLE ONLY FROM TOP BAR (Moves the Holder)
+    utility.dragify(topBar, holder)
 
     utility.create("TextLabel", {
         Size = UDim2.new(0, 120, 1, 0),
@@ -289,34 +299,38 @@ function library:Window(name)
             Parent = tabBtn
         })
 
-        local tabFrame = utility.create("ScrollingFrame", {
+        -- CHANGED: tabFrame is now a normal Frame holding the two columns
+        local tabFrame = utility.create("Frame", {
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
-            ScrollBarThickness = 5, -- Scrollbar enabled
-            ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
             Visible = false,
             ZIndex = 2,
             Parent = content
         })
 
-        -- CREATE TWO COLUMNS
-        local leftCol = utility.create("Frame", {
+        -- CREATE TWO SEPARATE SCROLLING COLUMNS
+        local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, -10, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 5,
+            ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
             Parent = tabFrame
         })
-        leftCol.AutomaticSize = Enum.AutomaticSize.Y -- Allow Left Column to grow
 
-        local rightCol = utility.create("Frame", {
+        local rightCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, -10, 1, 0),
             Position = UDim2.new(0.5, 10, 0, 0),
             BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ScrollBarThickness = 5,
+            ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
             Parent = tabFrame
         })
-        rightCol.AutomaticSize = Enum.AutomaticSize.Y -- Allow Right Column to grow
 
+        -- Create Layouts for each column to handle sizing/scrolling
         local leftList = utility.create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
             Padding = UDim.new(0, 10),
@@ -329,15 +343,13 @@ function library:Window(name)
             Parent = rightCol
         })
 
-        -- LOGIC: Update scroll height based on which column is TALLER
-        local function updateCanvas()
-            local leftH = leftList.AbsoluteContentSize.Y
-            local rightH = rightList.AbsoluteContentSize.Y
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, math.max(leftH, rightH))
-        end
-
-        leftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
-        rightList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+        -- Update Scroll sizes independently
+        leftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y)
+        end)
+        rightList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y)
+        end)
 
         local function select()
             if currentTab then
@@ -366,10 +378,10 @@ function library:Window(name)
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 1,
                 BorderColor3 = Color3.fromRGB(30, 30, 30),
-                AutomaticSize = Enum.AutomaticSize.Y, -- Auto Height
-                Size = UDim2.new(1, 0, 0, 0),      -- Starts at 0
+                AutomaticSize = Enum.AutomaticSize.Y,
+                Size = UDim2.new(1, 0, 0, 0),
                 ZIndex = 3,
-                Parent = targetCol -- Parent to Left or Right based on index
+                Parent = targetCol -- Parent to Left or Right
             })
             
             utility.create("TextLabel", {
@@ -389,7 +401,7 @@ function library:Window(name)
                 Size = UDim2.new(1, -16, 0, 0),
                 Position = UDim2.new(0, 8, 0, 25),
                 BackgroundTransparency = 1,
-                AutomaticSize = Enum.AutomaticSize.Y, -- Auto Height
+                AutomaticSize = Enum.AutomaticSize.Y,
                 ZIndex = 4,
                 Parent = sectionFrame
             })
