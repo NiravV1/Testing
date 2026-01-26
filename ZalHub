@@ -57,7 +57,7 @@ function utility.dragify(object, inputFrame)
             dragging = true
             dragStart = input.Position
             startPos = object.Position
-            
+
             local connection
             connection = input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
@@ -95,7 +95,7 @@ if not notifyHolder then
         VerticalAlignment = Enum.VerticalAlignment.Bottom,
         HorizontalAlignment = Enum.HorizontalAlignment.Right
     })
-    
+
     local padding = utility.create("UIPadding", {
         Parent = notifyHolder,
         PaddingBottom = UDim.new(0, 80),
@@ -167,7 +167,7 @@ function library:Notify(options)
         Font = Enum.Font.Code,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
-        AutomaticSize = Enum.AutomaticSize.Y, 
+        AutomaticSize = Enum.AutomaticSize.Y,
         ZIndex = 2,
         Parent = contentFrame
     })
@@ -234,7 +234,7 @@ function library:Window(name)
     local function toggleWindow()
         isOpen = not isOpen
         holder.Visible = isOpen
-        
+
         if isOpen then
             toggleBtn.Text = "ZalHub [ON]"
             toggleBtn.TextColor3 = library.accent
@@ -369,12 +369,14 @@ function library:Window(name)
             Parent = content
         })
 
+        -- ZERO GAP (columns touch)
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, 0, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
-            ScrollBarThickness = 0,
-            Visible = true, 
+            ScrollBarThickness = 0,  -- Changed from 6 to 0
+            ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
+            Visible = true,
             ZIndex = 3,
             Parent = tabFrame
         })
@@ -384,13 +386,15 @@ function library:Window(name)
             Size = UDim2.new(0.5, 0, 1, 0),
             Position = UDim2.new(0.5, 0, 0, 0),
             BackgroundTransparency = 1,
-            ScrollBarThickness = 0,
-            Visible = true, 
+            ScrollBarThickness = 0,  -- Changed from 6 to 0
+            ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
+            Visible = true,
             ZIndex = 3,
             Parent = tabFrame
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
+        -- 1PX PADDING ONLY
         utility.create("UIPadding", {
             Parent = leftCol,
             PaddingLeft = UDim.new(0, 1),
@@ -438,10 +442,10 @@ function library:Window(name)
                 utility.tween(currentTab.Line, {0.2}, {BackgroundTransparency = 1})
             end
             tabFrame.Visible = true
-            
+
             leftCol.Visible = true
             rightCol.Visible = true
-            
+
             leftCol.CanvasPosition = Vector2.new(0, 0)
             rightCol.CanvasPosition = Vector2.new(0, 0)
 
@@ -472,6 +476,7 @@ function library:Window(name)
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
+            -- 1PX INNER PADDING ONLY
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -2, 0, 35),
                 Position = UDim2.new(0, 1, 0, 0),
@@ -623,7 +628,7 @@ function library:Window(name)
 
                 local maxDropdownHeight = 200
                 local contentHeight = #list * 24
-                
+
                 local listFrame = utility.create("ScrollingFrame", {
                     Size = UDim2.new(1, 0, 0, contentHeight),
                     Position = UDim2.new(0, 0, 1, 4),
@@ -647,7 +652,7 @@ function library:Window(name)
                 btn.MouseButton1Click:Connect(function()
                     opened = not opened
                     listFrame.Visible = opened
-                    
+
                     if opened then
                         listFrame.Size = UDim2.new(1, 0, 0, math.min(contentHeight, maxDropdownHeight))
                         listFrame.CanvasSize = UDim2.new(1, 0, 0, contentHeight)
@@ -708,7 +713,7 @@ function library:Window(name)
                     Parent = slider
                 })
                 utility.stroke(bg, Color3.fromRGB(50, 50, 50), 1)
-                
+
                 local fill = utility.create("Frame", {
                     Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
                     BackgroundColor3 = library.accent,
