@@ -39,16 +39,16 @@ function utility.tween(obj, info, props)
     return tween
 end
 
--- UPDATED DRAG LOGIC: Accepts a 'targetObj' to move, while 'dragObj' detects clicks
-function utility.dragify(dragObj, targetObj)
-    targetObj = targetObj or dragObj -- Default: Move itself if not specified
+-- UPDATED DRAGIFY: Accepts 'inputFrame' to restrict dragging to specific area (like the top bar)
+function utility.dragify(object, inputFrame)
     local dragging, dragInput, dragStart, startPos
-    
-    dragObj.InputBegan:Connect(function(input)
+    local targetInput = inputFrame or object -- If no specific input frame, object handles input
+
+    targetInput.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = targetObj.Position -- Move the target (the window holder)
+            startPos = object.Position -- Moves the 'object' (the main holder)
             
             local connection
             connection = input.Changed:Connect(function()
@@ -59,17 +59,15 @@ function utility.dragify(dragObj, targetObj)
             end)
         end
     end)
-    
-    dragObj.InputChanged:Connect(function(input)
+    targetInput.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-    
     services.UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            targetObj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            object.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 end
@@ -192,8 +190,6 @@ function library:Window(name)
         BorderSizePixel = 0,
         Parent = gui
     })
-    -- PASS 'holder' as the TARGET, but drag initiated from topBar later
-    -- utility.dragify(holder) -- REMOVED THIS LINE
 
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
@@ -226,16 +222,12 @@ function library:Window(name)
     })
 
     local topBar = utility.create("Frame", {
-        Name = "TopBar",
         Size = UDim2.new(1, 0, 0, 35),
         BackgroundColor3 = Color3.fromRGB(20, 20, 20),
         BorderSizePixel = 0,
         ZIndex = 2,
         Parent = mainBG
     })
-
-    -- ADDED: DRAGGABLE ONLY FROM TOP BAR (Moves the Holder)
-    utility.dragify(topBar, holder)
 
     utility.create("TextLabel", {
         Size = UDim2.new(0, 120, 1, 0),
@@ -274,6 +266,9 @@ function library:Window(name)
         Parent = mainBG
     })
 
+    -- UPDATED: Pass topBar as second argument so ONLY top bar drags the window
+    utility.dragify(holder, topBar)
+
     local currentTab = nil
     local windowActions = {}
 
@@ -299,7 +294,7 @@ function library:Window(name)
             Parent = tabBtn
         })
 
-        -- CHANGED: tabFrame is now a normal Frame holding the two columns
+        -- CHANGED: tabFrame is now a normal Frame (Container), not a ScrollingFrame
         local tabFrame = utility.create("Frame", {
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
@@ -309,14 +304,15 @@ function library:Window(name)
             Parent = content
         })
 
-        -- CREATE TWO SEPARATE SCROLLING COLUMNS
+        -- CREATE TWO SCROLLING COLUMNS
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, -10, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-            ScrollBarThickness = 5,
+            ScrollBarThickness = 5, -- Independent Scrollbar
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
+            Visible = false,
+            ZIndex = 3,
             Parent = tabFrame
         })
 
@@ -324,13 +320,13 @@ function library:Window(name)
             Size = UDim2.new(0.5, -10, 1, 0),
             Position = UDim2.new(0.5, 10, 0, 0),
             BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-            ScrollBarThickness = 5,
+            ScrollBarThickness = 5, -- Independent Scrollbar
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
+            Visible = false,
+            ZIndex = 3,
             Parent = tabFrame
         })
 
-        -- Create Layouts for each column to handle sizing/scrolling
         local leftList = utility.create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
             Padding = UDim.new(0, 10),
@@ -343,7 +339,7 @@ function library:Window(name)
             Parent = rightCol
         })
 
-        -- Update Scroll sizes independently
+        -- INDEPENDENT SCROLL LOGIC
         leftList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y)
         end)
@@ -378,10 +374,10 @@ function library:Window(name)
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 1,
                 BorderColor3 = Color3.fromRGB(30, 30, 30),
-                AutomaticSize = Enum.AutomaticSize.Y,
-                Size = UDim2.new(1, 0, 0, 0),
-                ZIndex = 3,
-                Parent = targetCol -- Parent to Left or Right
+                AutomaticSize = Enum.AutomaticSize.Y, -- Auto Height
+                Size = UDim2.new(1, 0, 0, 0),      -- Starts at 0
+                ZIndex = 4,
+                Parent = targetCol
             })
             
             utility.create("TextLabel", {
@@ -393,7 +389,7 @@ function library:Window(name)
                 TextSize = 13,
                 Font = Enum.Font.Code,
                 TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex = 4,
+                ZIndex = 5,
                 Parent = sectionFrame
             })
 
@@ -401,8 +397,8 @@ function library:Window(name)
                 Size = UDim2.new(1, -16, 0, 0),
                 Position = UDim2.new(0, 8, 0, 25),
                 BackgroundTransparency = 1,
-                AutomaticSize = Enum.AutomaticSize.Y,
-                ZIndex = 4,
+                AutomaticSize = Enum.AutomaticSize.Y, -- Auto Height
+                ZIndex = 5,
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
@@ -418,7 +414,7 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 20),
                     BackgroundTransparency = 1,
                     Text = "",
-                    ZIndex = 5,
+                    ZIndex = 6,
                     Parent = items
                 })
                 local box = utility.create("Frame", {
@@ -426,7 +422,7 @@ function library:Window(name)
                     Position = UDim2.new(0, 0, 0.5, -7),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                     BorderColor3 = Color3.fromRGB(40, 40, 40),
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = toggle
                 })
                 local fill = utility.create("Frame", {
@@ -435,7 +431,7 @@ function library:Window(name)
                     BackgroundColor3 = library.accent,
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
-                    ZIndex = 7,
+                    ZIndex = 8,
                     Parent = box
                 })
                 utility.create("TextLabel", {
@@ -447,7 +443,7 @@ function library:Window(name)
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = toggle
                 })
 
@@ -464,7 +460,7 @@ function library:Window(name)
                 local textboxFrame = utility.create("Frame", {
                     Size = UDim2.new(1, 0, 0, 35),
                     BackgroundTransparency = 1,
-                    ZIndex = 5,
+                    ZIndex = 6,
                     Parent = items
                 })
                 utility.create("TextLabel", {
@@ -475,7 +471,7 @@ function library:Window(name)
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = textboxFrame
                 })
                 local box = utility.create("TextBox", {
@@ -489,7 +485,7 @@ function library:Window(name)
                     PlaceholderColor3 = Color3.fromRGB(80, 80, 80),
                     TextSize = 12,
                     Font = Enum.Font.Code,
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = textboxFrame
                 })
                 box.FocusLost:Connect(function()
@@ -502,7 +498,7 @@ function library:Window(name)
                 local dropdown = utility.create("Frame", {
                     Size = UDim2.new(1, 0, 0, 35),
                     BackgroundTransparency = 1,
-                    ZIndex = 5,
+                    ZIndex = 6,
                     Parent = items
                 })
                 utility.create("TextLabel", {
@@ -513,7 +509,7 @@ function library:Window(name)
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = dropdown
                 })
                 local btn = utility.create("TextButton", {
@@ -525,7 +521,7 @@ function library:Window(name)
                     TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
                     Font = Enum.Font.Code,
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = dropdown
                 })
                 local listFrame = utility.create("Frame", {
@@ -534,7 +530,7 @@ function library:Window(name)
                     BackgroundColor3 = Color3.fromRGB(20, 20, 20),
                     BorderColor3 = Color3.fromRGB(40, 40, 40),
                     Visible = false,
-                    ZIndex = 10,
+                    ZIndex = 11,
                     Parent = btn
                 })
                 utility.create("UIListLayout", {Parent = listFrame})
@@ -555,7 +551,7 @@ function library:Window(name)
                         TextColor3 = Color3.fromRGB(160, 160, 160),
                         TextSize = 12,
                         Font = Enum.Font.Code,
-                        ZIndex = 11,
+                        ZIndex = 12,
                         Parent = listFrame
                     })
                     item.MouseButton1Click:Connect(function()
@@ -572,7 +568,7 @@ function library:Window(name)
                 local slider = utility.create("Frame", {
                     Size = UDim2.new(1, 0, 0, 38),
                     BackgroundTransparency = 1,
-                    ZIndex = 5,
+                    ZIndex = 6,
                     Parent = items
                 })
                 utility.create("TextLabel", {
@@ -583,7 +579,7 @@ function library:Window(name)
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = slider
                 })
                 local bg = utility.create("TextButton", {
@@ -592,14 +588,14 @@ function library:Window(name)
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                     BorderColor3 = Color3.fromRGB(40, 40, 40),
                     Text = "",
-                    ZIndex = 6,
+                    ZIndex = 7,
                     Parent = slider
                 })
                 local fill = utility.create("Frame", {
                     Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
                     BackgroundColor3 = library.accent,
                     BorderSizePixel = 0,
-                    ZIndex = 7,
+                    ZIndex = 8,
                     Parent = bg
                 })
                 local val = utility.create("TextLabel", {
@@ -609,7 +605,7 @@ function library:Window(name)
                     TextColor3 = Color3.fromRGB(255,255,255),
                     TextSize = 11,
                     Font = Enum.Font.Code,
-                    ZIndex = 8,
+                    ZIndex = 9,
                     Parent = bg
                 })
 
@@ -649,7 +645,7 @@ function library:Window(name)
                     TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
                     Font = Enum.Font.Code,
-                    ZIndex = 5,
+                    ZIndex = 6,
                     Parent = items
                 })
                 btn.MouseButton1Click:Connect(callback)
