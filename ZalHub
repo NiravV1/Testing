@@ -200,7 +200,7 @@ function library:Window(name)
         Parent = gui
     })
 
-    -- TOGGLE GUI / WATERMARK
+    -- TOGGLE GUI / WATERMARK (UPDATED FOR RICH TEXT)
     local toggleGui = Instance.new("ScreenGui")
     toggleGui.Name = "ZalHub_Toggle"
     toggleGui.Parent = game:GetService("CoreGui")
@@ -216,37 +216,33 @@ function library:Window(name)
     toggleBtn.Font = Enum.Font.Code
     toggleBtn.TextSize = 16
     toggleBtn.ZIndex = 100
+    toggleBtn.RichText = true  -- Enable RichText
     toggleBtn.Parent = toggleGui
-    toggleBtn.RichText = true  -- Enable RichText for colored [ON]/[OFF]
 
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = toggleBtn
 
     local stroke = Instance.new("UIStroke")
+    stroke.Color = library.accent  -- Always purple
     stroke.Thickness = 1
     stroke.Parent = toggleBtn
 
     local isOpen = true
 
-    -- Initial state (ON)
-    toggleBtn.Text = [[ZalHub <font color="rgb(140,60,255)">[ON]</font>]]
-    toggleBtn.TextColor3 = library.accent
-    stroke.Color = library.accent
+    -- Initial text (ON state)
+    toggleBtn.Text = '<font color="#8c3cff">ZalHub</font> <font color="#8c3cff">[ON]</font>'
 
     local function toggleWindow()
         isOpen = not isOpen
         holder.Visible = isOpen
         
         if isOpen then
-            toggleBtn.Text = [[ZalHub <font color="rgb(140,60,255)">[ON]</font>]]
-            stroke.Color = library.accent
+            toggleBtn.Text = '<font color="#8c3cff">ZalHub</font> <font color="#8c3cff">[ON]</font>'
         else
-            toggleBtn.Text = [[ZalHub <font color="rgb(80,80,80)">[OFF]</font>]]
-            stroke.Color = Color3.fromRGB(80, 80, 80)
+            toggleBtn.Text = '<font color="#8c3cff">ZalHub</font> <font color="#505050">[OFF]</font>'
         end
-        -- TextColor3 always stays accent so "ZalHub" is always purple
-        toggleBtn.TextColor3 = library.accent
+        -- Stroke stays purple always (no change)
     end
 
     toggleBtn.MouseButton1Click:Connect(toggleWindow)
