@@ -39,7 +39,6 @@ function utility.tween(obj, info, props)
     return tween
 end
 
--- UPDATED DRAGIFY
 function utility.dragify(object, inputFrame)
     local dragging, dragInput, dragStart, startPos
     local targetInput = inputFrame or object
@@ -49,6 +48,7 @@ function utility.dragify(object, inputFrame)
             dragging = true
             dragStart = input.Position
             startPos = object.Position
+            
             local connection
             connection = input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
@@ -406,7 +406,6 @@ function library:Window(name)
             utility.tween(underline, {0.2}, {BackgroundTransparency = 0})
             currentTab = {Frame = tabFrame, Btn = tabBtn, Line = underline}
             
-            -- Force refresh
             task.spawn(function()
                 for i=1, 5 do 
                     updateCanvas()
@@ -464,7 +463,6 @@ function library:Window(name)
 
             local sectionActions = {}
 
-            -- MODERN CIRCLE TOGGLE WITH ANIMATION
             function sectionActions:Toggle(text, flag, callback)
                 local toggle = utility.create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 20),
@@ -473,8 +471,6 @@ function library:Window(name)
                     ZIndex = 6,
                     Parent = items
                 })
-
-                -- Toggle Circle (Outer Ring)
                 local toggleBg = utility.create("Frame", {
                     Size = UDim2.new(0, 14, 0, 14),
                     Position = UDim2.new(0, 0, 0.5, -7),
@@ -484,27 +480,25 @@ function library:Window(name)
                     Parent = toggle
                 })
                 local toggleCorner = Instance.new("UICorner")
-                toggleCorner.CornerRadius = UDim.new(1, 0) -- Circle
+                toggleCorner.CornerRadius = UDim.new(1, 0)
                 toggleCorner.Parent = toggleBg
 
-                -- Toggle Fill (Inner Circle)
                 local toggleFill = utility.create("Frame", {
-                    Size = UDim2.new(0, 6, 0, 6), -- Small circle
+                    Size = UDim2.new(0, 6, 0, 6),
                     Position = UDim2.new(0.5, 0, 0.5, 0),
                     BackgroundColor3 = library.accent,
                     BorderSizePixel = 0,
                     ZIndex = 8,
                     Parent = toggleBg
                 })
-                toggleFill.Visible = false -- Hidden initially
+                toggleFill.Visible = false
 
-                -- Checkmark Icon
                 local checkMark = utility.create("TextLabel", {
                     Size = UDim2.new(1, 0, 1, 0),
                     Position = UDim2.new(0, 0, 0, 0),
                     BackgroundTransparency = 1,
                     Text = "✓",
-                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextColor3 = Color3.fromRGB(255,255,255),
                     TextSize = 10,
                     Font = Enum.Font.GothamBold,
                     TextScaled = true,
@@ -533,20 +527,15 @@ function library:Window(name)
                     callback(enabled)
 
                     if enabled then
-                        -- Animation: Expand Fill
                         utility.tween(toggleFill, {0.3, Enum.EasingStyle.Back}, {Size = UDim2.new(0, 14, 0, 14), Position = UDim2.new(0.5, 0, 0.5, 0)})
                         toggleFill.Visible = true
                         checkMark.Visible = true
-                        
-                        -- Slight stroke animation
                         utility.tween(toggleBg, {0.2}, {BorderColor3 = library.accent})
                     else
-                        -- Animation: Shrink Fill
                         utility.tween(toggleFill, {0.3, Enum.EasingStyle.Back}, {Size = UDim2.new(0, 6, 0, 6), Position = UDim2.new(0.5, 0, 0.5, 0)})
                         task.wait(0.15)
                         toggleFill.Visible = false
                         checkMark.Visible = false
-                        
                         utility.tween(toggleBg, {0.2}, {BorderColor3 = Color3.fromRGB(40, 40, 40)})
                     end
                 end)
@@ -590,7 +579,6 @@ function library:Window(name)
                 end)
             end
 
-            -- ADVANCED DROPDOWN WITH SEARCH
             function sectionActions:Dropdown(text, flag, list, callback)
                 local dropdown = utility.create("Frame", {
                     Size = UDim2.new(1, 0, 0, 35),
@@ -625,16 +613,15 @@ function library:Window(name)
                 btnCorner.CornerRadius = UDim.new(0, 4)
                 btnCorner.Parent = btn
 
-                -- DROPDOWN CONTAINER (Scrolling Frame)
+                -- DROPDOWN CONTAINER
                 local listFrame = utility.create("ScrollingFrame", {
-                    Size = UDim2.new(1, 0, 0, 150), -- Fixed Height with Scroll
+                    Size = UDim2.new(1, 0, 0, 150),
                     Position = UDim2.new(0, 0, 1, 0),
                     BackgroundColor3 = Color3.fromRGB(20, 20, 20),
                     BorderColor3 = Color3.fromRGB(40, 40, 40),
                     Visible = false,
                     ScrollBarThickness = 4,
                     ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
-                    CanvasSize = UDim2.new(0, 0, 0, 0),
                     ZIndex = 11,
                     Parent = btn
                 })
@@ -647,7 +634,7 @@ function library:Window(name)
                 -- SEARCH BAR
                 local searchBox = utility.create("TextBox", {
                     Size = UDim2.new(1, -10, 0, 20),
-                    Position = UDim2.new(0, 5, 0, 3), -- Top Left of listFrame
+                    Position = UDim2.new(0, 5, 0, 3),
                     BackgroundColor3 = Color3.fromRGB(30, 30, 30),
                     BorderColor3 = Color3.fromRGB(50, 50, 50),
                     Text = "",
@@ -663,13 +650,20 @@ function library:Window(name)
                 searchCorner.CornerRadius = UDim.new(0, 4)
                 searchCorner.Parent = searchBox
 
-                local listLayout = utility.create("UIListLayout", {
+                -- BUTTONS CONTAINER (Not layout yet)
+                local buttonsContainer = Instance.new("Frame")
+                buttonsContainer.Name = "ButtonsContainer"
+                buttonsContainer.Size = UDim2.new(1, 0, 1, 0) -- Fills remaining space
+                buttonsContainer.Position = UDim2.new(0, 0, 1, 0)
+                buttonsContainer.BackgroundTransparency = 1
+                buttonsContainer.Parent = listFrame
+                
+                local itemLayout = utility.create("UIListLayout", {
                     SortOrder = Enum.SortOrder.LayoutOrder,
                     Padding = UDim.new(0, 2),
-                    Parent = listFrame
+                    Parent = buttonsContainer
                 })
-                
-                -- Store buttons for searching
+
                 local optionButtons = {}
 
                 for _, v in next, list do
@@ -683,7 +677,7 @@ function library:Window(name)
                         Font = Enum.Font.Code,
                         TextXAlignment = Enum.TextXAlignment.Left,
                         ZIndex = 12,
-                        Parent = listFrame
+                        Parent = buttonsContainer
                     })
                     item.MouseButton1Click:Connect(function()
                         btn.Text = v
@@ -695,33 +689,31 @@ function library:Window(name)
                     table.insert(optionButtons, item)
                 end
 
-                -- SEARCH LOGIC
+                -- MANUAL CANVAS SIZE UPDATE (FIXES ERROR & SEARCH LOGIC)
                 local function updateList()
                     local query = searchBox.Text:lower()
-                    local foundOne = false
+                    local visibleCount = 0
+
                     for _, item in pairs(optionButtons) do
-                        if item.Text:lower():find(query) then
+                        if string.sub(item.Text, 1, #query):lower() == query then
                             item.Visible = true
-                            foundOne = true
+                            visibleCount = visibleCount + 1
                         else
                             item.Visible = false
                         end
                     end
-                    -- Update CanvasSize based on visible items
-                    listFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 26) -- +26 for searchbox height
+
+                    -- Calculate size manually: (VisibleCount * (18 height + 2 padding)) + SearchBar Height (26)
+                    local contentHeight = (visibleCount * 20) + 26
+                    listFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
                 end
 
                 searchBox:GetPropertyChangedSignal("Text"):Connect(updateList)
-                -- Call initially to set sizes
-                listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-                    updateList()
-                end)
-
+                
                 local opened = false
                 btn.MouseButton1Click:Connect(function()
                     opened = not opened
                     listFrame.Visible = opened
-                    -- Reset Search when opening
                     if opened then
                         searchBox.Text = ""
                         updateList()
