@@ -402,7 +402,7 @@ function library:Window(name)
             Parent = rightCol
         })
 
-        -- FIX: Proper Scrolling Logic using GetPropertyChangedSignal
+        -- INDEPENDENT SCROLL LOGIC
         local function updateCanvas()
             leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y)
             rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y)
@@ -466,7 +466,7 @@ function library:Window(name)
                 CornerRadius = UDim.new(0, 6),
                 Parent = sectionFrame
             })
-
+            
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -10, 0, 25),
                 Position = UDim2.new(0, 8, 0, 0),
@@ -504,23 +504,22 @@ function library:Window(name)
                     ZIndex = 6,
                     Parent = items
                 })
-                
-                -- PAID LOOK: Perfect Square Toggle (18x18)
                 local box = utility.create("Frame", {
-                    Size = UDim2.new(0, 18, 0, 18), 
+                    Size = UDim2.new(0, 18, 0, 18), -- Slightly larger toggle box
                     Position = UDim2.new(0, 0, 0.5, -9),
-                    BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+                    BackgroundColor3 = Color3.fromRGB(30, 30, 30), -- Darker Grey
                     ZIndex = 7,
                     Parent = toggle
                 })
-
+                
+                -- PAID LOOK: Rounded Toggle Box
                 utility.create("UICorner", {
-                    CornerRadius = UDim.new(0, 4), -- Modern Rounded
+                    CornerRadius = UDim.new(0, 4),
                     Parent = box
                 })
 
                 local fill = utility.create("Frame", {
-                    Size = UDim2.new(1, -2, 1, -2),
+                    Size = UDim2.new(1, -2, 1, -2), -- Smaller fill for border effect
                     Position = UDim2.new(0, 1, 0, 1),
                     BackgroundColor3 = library.accent,
                     BorderSizePixel = 0,
@@ -529,17 +528,18 @@ function library:Window(name)
                     Parent = box
                 })
 
+                -- PAID LOOK: Rounded Toggle Fill
                 utility.create("UICorner", {
-                    CornerRadius = UDim.new(0, 3), -- Inner Rounded
+                    CornerRadius = UDim.new(0, 3),
                     Parent = fill
                 })
 
                 utility.create("TextLabel", {
-                    Size = UDim2.new(1, -25, 1, 0), -- Adjusted offset for square
-                    Position = UDim2.new(0, 23, 0, 0),
+                    Size = UDim2.new(1, -25, 1, 0),
+                    Position = UDim2.new(0, 25, 0, 0),
                     BackgroundTransparency = 1,
                     Text = text,
-                    TextColor3 = Color3.fromRGB(180, 180, 180),
+                    TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
                     Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
@@ -548,19 +548,6 @@ function library:Window(name)
                 })
 
                 local enabled = false
-
-                -- ANIMATION: Hover Effect
-                toggle.MouseEnter:Connect(function()
-                    if not enabled then
-                        utility.tween(fill, {0.2}, {BackgroundTransparency = 0.8}) -- Slightly visible on hover
-                    end
-                end)
-                toggle.MouseLeave:Connect(function()
-                    if not enabled then
-                        utility.tween(fill, {0.2}, {BackgroundTransparency = 1}) -- Hide on leave
-                    end
-                end)
-
                 toggle.MouseButton1Click:Connect(function()
                     enabled = not enabled
                     utility.tween(fill, {0.2}, {BackgroundTransparency = enabled and 0 or 1})
@@ -602,6 +589,7 @@ function library:Window(name)
                     Parent = textboxFrame
                 })
                 
+                -- PAID LOOK: Rounded Textbox
                 utility.create("UICorner", {
                     CornerRadius = UDim.new(0, 4),
                     Parent = box
@@ -643,52 +631,42 @@ function library:Window(name)
                     ZIndex = 7,
                     Parent = dropdown
                 })
-
-                utility.create("UICorner", {
-                    CornerRadius = UDim.new(0, 4),
-                    Parent = btn
-                })
-
-                -- ADDED: ScrollingFrame for the Dropdown List
-                -- Allows long lists to scroll independently of the main UI
-                local listFrame = utility.create("ScrollingFrame", {
-                    Size = UDim2.new(1, 0, 0, 0), -- Dynamic height
-                    Position = UDim2.new(0, 0, 1, 0),
-                    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-                    BorderSizePixel = 0,
-                    Visible = false,
-                    ZIndex = 11, -- High ZIndex to float over content
-                    Parent = btn
-                })
                 
                 -- PAID LOOK: Rounded Dropdown
                 utility.create("UICorner", {
                     CornerRadius = UDim.new(0, 4),
-                    Parent = listFrame
+                    Parent = btn
+                })
+
+                -- CHANGED: ScrollingFrame for Dropdown List
+                local listFrame = utility.create("ScrollingFrame", {
+                    Size = UDim2.new(1, 0, 0, 0), -- Height changes on toggle
+                    Position = UDim2.new(0, 0, 1, 0),
+                    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    Visible = false,
+                    ScrollBarThickness = 4, -- ADDED SCROLLBAR
+                    ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60),
+                    ZIndex = 11,
+                    Parent = btn
                 })
 
                 local listLayout = utility.create("UIListLayout", {Parent = listFrame})
-
-                -- FIX: Scrollbar conflict
-                -- If user scrolls dropdown, don't scroll main window
-                listFrame.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseWheel then
-                        -- Consume input so it doesn't pass to parent ScrollingFrame
-                    end
+                
+                -- ADDED: Canvas Size Logic
+                listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                    listFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
                 end)
 
                 local opened = false
                 btn.MouseButton1Click:Connect(function()
                     opened = not opened
                     listFrame.Visible = opened
-                    
                     if opened then
-                        -- Calculate Canvas Size based on item count
-                        -- Max height limited to 200, then scroll
-                        local totalHeight = #list * 20 
-                        listFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
+                        -- Set Max Height for dropdown view
+                        listFrame.Size = UDim2.new(1, 0, 0, 150) 
                     else
-                        listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+                        listFrame.Size = UDim2.new(1, 0, 0, 0)
                     end
                 end)
 
@@ -708,17 +686,8 @@ function library:Window(name)
                         btn.Text = v
                         opened = false
                         listFrame.Visible = false
-                        listFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
                         library.flags[flag] = v
                         callback(v)
-                    end)
-                    
-                    -- Hover effect for dropdown items
-                    item.MouseEnter:Connect(function()
-                        utility.tween(item, {0.1}, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)})
-                    end)
-                    item.MouseLeave:Connect(function()
-                        utility.tween(item, {0.1}, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)})
                     end)
                 end
             end
@@ -812,7 +781,7 @@ function library:Window(name)
             function sectionActions:Button(text, callback)
                 local btn = utility.create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 24),
-                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25), -- Darker BG
                     BorderColor3 = Color3.fromRGB(40, 40, 40),
                     Text = text,
                     TextColor3 = Color3.fromRGB(200, 200, 200),
@@ -827,14 +796,6 @@ function library:Window(name)
                     CornerRadius = UDim.new(0, 4),
                     Parent = btn
                 })
-
-                -- Hover Effect
-                btn.MouseEnter:Connect(function()
-                    utility.tween(btn, {0.1}, {BackgroundColor3 = Color3.fromRGB(35, 35, 35)})
-                end)
-                btn.MouseLeave:Connect(function()
-                    utility.tween(btn, {0.1}, {BackgroundColor3 = Color3.fromRGB(25, 25, 25)})
-                end)
 
                 btn.MouseButton1Click:Connect(callback)
             end
