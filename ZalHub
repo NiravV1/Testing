@@ -369,12 +369,12 @@ function library:Window(name)
             Parent = content
         })
 
-        -- ZERO GAP (columns touch)
+        -- 4PX GAP (columns separated)
         local leftCol = utility.create("ScrollingFrame", {
-            Size = UDim2.new(0.5, 0, 1, 0),
+            Size = UDim2.new(0.5, -2, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
             BackgroundTransparency = 1,
-            ScrollBarThickness = 0,  -- Changed from 6 to 0
+            ScrollBarThickness = 0,
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
             Visible = true,
             ZIndex = 3,
@@ -383,10 +383,10 @@ function library:Window(name)
         leftCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
         local rightCol = utility.create("ScrollingFrame", {
-            Size = UDim2.new(0.5, 0, 1, 0),
-            Position = UDim2.new(0.5, 0, 0, 0),
+            Size = UDim2.new(0.5, -2, 1, 0),
+            Position = UDim2.new(0.5, 2, 0, 0),
             BackgroundTransparency = 1,
-            ScrollBarThickness = 0,  -- Changed from 6 to 0
+            ScrollBarThickness = 0,
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
             Visible = true,
             ZIndex = 3,
@@ -499,7 +499,7 @@ function library:Window(name)
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, 0),  -- Decreased by 8 from 8 to 0
+                Padding = UDim.new(0, 0),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
