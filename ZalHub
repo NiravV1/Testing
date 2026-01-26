@@ -193,7 +193,7 @@ function library:Window(name)
 
     local holder = utility.create("Frame", {
         Name = "Holder",
-        Size = UDim2.new(0, 750, 0, 550),  -- Slightly wider window for even more space
+        Size = UDim2.new(0, 750, 0, 550),
         Position = UDim2.new(0.5, -375, 0.5, -275),
         BackgroundColor3 = Color3.fromRGB(10, 10, 10),
         BorderSizePixel = 0,
@@ -213,37 +213,40 @@ function library:Window(name)
     toggleBtn.Position = UDim2.new(0, 20, 0, 10)
     toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     toggleBtn.BorderSizePixel = 0
-    toggleBtn.Text = "ZalHub [ON]"
-    toggleBtn.TextColor3 = library.accent
     toggleBtn.Font = Enum.Font.Code
     toggleBtn.TextSize = 16
     toggleBtn.ZIndex = 100
     toggleBtn.Parent = toggleGui
+    toggleBtn.RichText = true  -- Enable RichText for colored [ON]/[OFF]
 
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = toggleBtn
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = library.accent
     stroke.Thickness = 1
     stroke.Parent = toggleBtn
 
     local isOpen = true
+
+    -- Initial state (ON)
+    toggleBtn.Text = [[ZalHub <font color="rgb(140,60,255)">[ON]</font>]]
+    toggleBtn.TextColor3 = library.accent
+    stroke.Color = library.accent
 
     local function toggleWindow()
         isOpen = not isOpen
         holder.Visible = isOpen
         
         if isOpen then
-            toggleBtn.Text = "ZalHub [ON]"
-            toggleBtn.TextColor3 = library.accent
+            toggleBtn.Text = [[ZalHub <font color="rgb(140,60,255)">[ON]</font>]]
             stroke.Color = library.accent
         else
-            toggleBtn.Text = "ZalHub [OFF]"
-            toggleBtn.TextColor3 = Color3.fromRGB(80, 80, 80)
+            toggleBtn.Text = [[ZalHub <font color="rgb(80,80,80)">[OFF]</font>]]
             stroke.Color = Color3.fromRGB(80, 80, 80)
         end
+        -- TextColor3 always stays accent so "ZalHub" is always purple
+        toggleBtn.TextColor3 = library.accent
     end
 
     toggleBtn.MouseButton1Click:Connect(toggleWindow)
@@ -325,7 +328,6 @@ function library:Window(name)
         Parent = tabContainer
     })
 
-    -- Made content area wider (less side padding)
     local content = utility.create("Frame", {
         Size = UDim2.new(1, -20, 1, -80),
         Position = UDim2.new(0, 10, 0, 65),
@@ -370,7 +372,6 @@ function library:Window(name)
             Parent = content
         })
 
-        -- ZERO GAP BETWEEN COLUMNS
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, 0, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
@@ -395,7 +396,6 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- MINIMAL PADDING INSIDE COLUMNS
         utility.create("UIPadding", {
             Parent = leftCol,
             PaddingLeft = UDim.new(0, 5),
@@ -416,7 +416,7 @@ function library:Window(name)
             FillDirection = Enum.FillDirection.Vertical,
             HorizontalAlignment = Enum.HorizontalAlignment.Left,
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 10),  -- Slightly less vertical space between sections
+            Padding = UDim.new(0, 10),
             Parent = leftCol
         })
 
@@ -467,7 +467,6 @@ function library:Window(name)
             local targetCol = currentSectionIndex % 2 == 0 and leftCol or rightCol
             currentSectionIndex = currentSectionIndex + 1
 
-            -- FULL WIDTH SECTIONS (no inset)
             local sectionFrame = utility.create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
@@ -478,7 +477,6 @@ function library:Window(name)
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
-            -- Minimal inner padding
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -10, 0, 35),
                 Position = UDim2.new(0, 5, 0, 0),
@@ -501,14 +499,12 @@ function library:Window(name)
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, 8),  -- Less space between elements
+                Padding = UDim.new(0, 8),
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
 
             local sectionActions = {}
-
-            -- (All your element functions: Toggle, Textbox, Dropdown, Slider, Button remain exactly the same)
 
             function sectionActions:Toggle(text, flag, callback)
                 local toggle = utility.create("TextButton", {
