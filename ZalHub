@@ -402,16 +402,14 @@ function library:Window(name)
             Parent = rightCol
         })
 
-        -- FIX: Proper Scrolling Logic using GetPropertyChangedSignal
-        -- This avoids lag and ensures content is visible
-        local function updateCanvas()
-            leftCol.CanvasSize = UDim2.new(0, 0, 0, leftCol.AbsoluteContentSize.Y)
-            rightCol.CanvasSize = UDim2.new(0, 0, 0, rightCol.AbsoluteContentSize.Y)
-        end
-
-        -- Connect to the ScrollingFrames AbsoluteContentSize. This is the most reliable way.
-        leftCol:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
-        rightCol:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+        -- FIX: RenderStepped loop to force CanvasSize updates
+        -- This ensures that if AutomaticSize changes, the ScrollFrame updates immediately
+        services.RunService.RenderStepped:Connect(function()
+            if tabFrame.Visible then
+                leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y)
+                rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y)
+            end
+        end)
 
         local function select()
             if currentTab then
@@ -423,10 +421,6 @@ function library:Window(name)
             utility.tween(tabBtn, {0.2}, {TextColor3 = library.accent})
             utility.tween(underline, {0.2}, {BackgroundTransparency = 0})
             currentTab = {Frame = tabFrame, Btn = tabBtn, Line = underline}
-            
-            -- Force update when tab is selected to prevent invisible bug
-            task.wait(0.05) -- Tiny wait for layout engine to detect visibility
-            updateCanvas()
         end
 
         tabBtn.MouseButton1Click:Connect(select)
@@ -454,7 +448,7 @@ function library:Window(name)
                 Size = UDim2.new(1, -10, 0, 25),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
-                Text = sectionName:upper(), -- Fixed to upper() (Standard Lua)
+                Text = sectionName:upper(),
                 TextColor3 = library.accent,
                 TextSize = 13,
                 Font = Enum.Font.Code,
@@ -730,4 +724,4 @@ function library:Window(name)
     return windowActions
 end
 
-return library.
+return library
