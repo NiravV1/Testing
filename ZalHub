@@ -39,6 +39,16 @@ function utility.tween(obj, info, props)
     return tween
 end
 
+-- HELPER: Adds a clean UIStroke to an object (Fixes clipping issues)
+function utility.stroke(obj, color, thickness)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = color or Color3.fromRGB(50, 50, 50)
+    stroke.Thickness = thickness or 1
+    stroke.Transparency = 0.5 -- Slight transparency makes it look cleaner
+    stroke.Parent = obj
+    return stroke
+end
+
 -- UPDATED DRAGIFY: Accepts 'inputFrame' to restrict dragging to specific area (like top bar)
 function utility.dragify(object, inputFrame)
     local dragging, dragInput, dragStart, startPos
@@ -107,6 +117,7 @@ function library:Notify(options)
         AnchorPoint = Vector2.new(1,1)
     })
     notifyFrame.AutomaticSize = Enum.AutomaticSize.Y
+    utility.stroke(notifyFrame, library.accent, 1) -- Clean outline for notification
 
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
@@ -291,6 +302,7 @@ function library:Window(name)
         ZIndex = 2,
         Parent = mainBG
     })
+    utility.stroke(topBar, Color3.fromRGB(40, 40, 40), 1) -- Clean Top Bar Border
 
     utility.create("TextLabel", {
         Size = UDim2.new(0, 120, 1, 0),
@@ -374,7 +386,7 @@ function library:Window(name)
             BackgroundTransparency = 1,
             ScrollBarThickness = 5, -- Independent Scrollbar
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
-            Visible = true, -- FIXED: Was false, now true
+            Visible = true,
             ZIndex = 3,
             Parent = tabFrame
         })
@@ -385,7 +397,7 @@ function library:Window(name)
             BackgroundTransparency = 1,
             ScrollBarThickness = 5, -- Independent Scrollbar
             ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
-            Visible = true, -- FIXED: Was false, now true
+            Visible = true,
             ZIndex = 3,
             Parent = tabFrame
         })
@@ -402,7 +414,7 @@ function library:Window(name)
             Parent = rightCol
         })
 
-        -- FIX: INDEPENDENT SCROLL LOGIC
+        -- FIX: Independent Scroll Logic
         local function updateCanvas()
             leftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y)
             rightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y)
@@ -454,13 +466,14 @@ function library:Window(name)
 
             local sectionFrame = utility.create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
-                BorderSizePixel = 1,
-                BorderColor3 = Color3.fromRGB(30, 30, 30),
+                BorderSizePixel = 0, -- Removed BorderSizePixel to use UIStroke
                 AutomaticSize = Enum.AutomaticSize.Y, -- Auto Height
                 Size = UDim2.new(1, 0, 0, 0),      -- Starts at 0
                 ZIndex = 4,
                 Parent = targetCol
             })
+            -- UIStroke on Section Frame
+            utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
             
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -10, 0, 25),
@@ -503,10 +516,12 @@ function library:Window(name)
                     Size = UDim2.new(0, 14, 0, 14),
                     Position = UDim2.new(0, 0, 0.5, -7),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0, -- Removed
                     ZIndex = 7,
                     Parent = toggle
                 })
+                utility.stroke(box, Color3.fromRGB(50, 50, 50), 1) -- Added Clean Stroke
+
                 local fill = utility.create("Frame", {
                     Size = UDim2.new(1, -4, 1, -4),
                     Position = UDim2.new(0, 2, 0, 2),
@@ -560,7 +575,7 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 18),
                     Position = UDim2.new(0, 0, 0, 16),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0, -- Removed
                     PlaceholderText = placeholder or "...",
                     Text = "",
                     TextColor3 = Color3.fromRGB(220, 220, 220),
@@ -570,6 +585,7 @@ function library:Window(name)
                     ZIndex = 7,
                     Parent = textboxFrame
                 })
+                utility.stroke(box, Color3.fromRGB(50, 50, 50), 1) -- Added Clean Stroke
                 box.FocusLost:Connect(function()
                     library.flags[flag] = box.Text
                     callback(box.Text)
@@ -598,7 +614,7 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 18),
                     Position = UDim2.new(0, 0, 0, 16),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0, -- Removed
                     Text = "Select...",
                     TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
@@ -606,23 +622,25 @@ function library:Window(name)
                     ZIndex = 7,
                     Parent = dropdown
                 })
-                -- ADDED SCROLLING LOGIC FOR DROPDOWN
+                utility.stroke(btn, Color3.fromRGB(50, 50, 50), 1) -- Added Clean Stroke
                 local maxDropdownHeight = 150
                 local contentHeight = #list * 18
                 
                 local listFrame = utility.create("ScrollingFrame", {
-                    Size = UDim2.new(1, 0, 0, contentHeight), -- Initial size (toggles on open)
+                    Size = UDim2.new(1, 0, 0, contentHeight), -- Initial size
                     Position = UDim2.new(0, 0, 1, 0),
                     BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0, -- Removed
                     Visible = false,
                     ZIndex = 11,
-                    ScrollBarThickness = 4, -- SCROLLBAR ADDED
+                    ScrollBarThickness = 4, -- Scrollbar
                     ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60),
                     ScrollBarImageTransparency = 0.5,
                     CanvasSize = UDim2.new(1, 0, 0, contentHeight),
                     Parent = btn
                 })
+                utility.stroke(listFrame, Color3.fromRGB(50, 50, 50), 1) -- Added Clean Stroke
+                
                 utility.create("UIListLayout", {Parent = listFrame})
 
                 local opened = false
@@ -685,11 +703,13 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 14),
                     Position = UDim2.new(0, 0, 0, 18),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0, -- Removed
                     Text = "",
                     ZIndex = 7,
                     Parent = slider
                 })
+                utility.stroke(bg, Color3.fromRGB(50, 50, 50), 1) -- Added Clean Stroke
+                
                 local fill = utility.create("Frame", {
                     Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
                     BackgroundColor3 = library.accent,
@@ -739,7 +759,7 @@ function library:Window(name)
                 local btn = utility.create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 24),
                     BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                    BorderColor3 = Color3.fromRGB(40, 40, 40),
+                    BorderSizePixel = 0, -- Removed
                     Text = text,
                     TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
@@ -747,6 +767,7 @@ function library:Window(name)
                     ZIndex = 6,
                     Parent = items
                 })
+                utility.stroke(btn, Color3.fromRGB(50, 50, 50), 1) -- Added Clean Stroke
                 btn.MouseButton1Click:Connect(callback)
             end
 
