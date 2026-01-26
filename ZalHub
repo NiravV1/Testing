@@ -4,20 +4,9 @@ until game:IsLoaded()
 
 local library = {
     flags = {},
-    accent = Color3.fromRGB(140, 60, 255),
+    accent = Color3.fromRGB(140, 60, 255), -- Purple/Pink Theme
     outline = { Color3.fromRGB(140, 60, 255), Color3.fromRGB(223, 57, 137) },
     toggled = true,
-    -- New Palette for Premium Look
-    theme = {
-        bg = Color3.fromRGB(21, 21, 22),
-        topbar = Color3.fromRGB(26, 26, 28),
-        section = Color3.fromRGB(30, 30, 33),
-        item = Color3.fromRGB(40, 40, 44),
-        item_hover = Color3.fromRGB(50, 50, 55),
-        text = Color3.fromRGB(230, 230, 230),
-        text_sub = Color3.fromRGB(150, 150, 150),
-        shadow = Color3.fromRGB(0, 0, 0)
-    }
 }
 
 local services = setmetatable({}, {
@@ -36,7 +25,6 @@ function utility.create(class, properties)
     return obj
 end
 
--- UPGRADE: Gradient Generator
 function utility.gradient(colors)
     local colortbl = {}
     for i, color in next, colors do
@@ -45,39 +33,22 @@ function utility.gradient(colors)
     return ColorSequence.new(colortbl)
 end
 
--- UPGRADE: Shadow Generator for Depth
-function utility.shadow(obj, offset, transparency, sizeOffset)
-    local shadow = utility.create("Frame", {
-        Size = UDim2.new(1, (sizeOffset or 0), 1, (sizeOffset or 0)),
-        Position = UDim2.new(0, offset, 0, offset),
-        BackgroundColor3 = library.theme.shadow,
-        BackgroundTransparency = transparency or 0.5,
-        BorderSizePixel = 0,
-        ZIndex = obj.ZIndex - 1,
-        Parent = obj.Parent
-    })
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = obj:FindFirstChildOfClass("UICorner") and obj.UICorner.CornerRadius or UDim.new(0, 5)
-    corner.Parent = shadow
-    return shadow
-end
-
 function utility.tween(obj, info, props)
     local tween = services.TweenService:Create(obj, TweenInfo.new(unpack(info)), props)
     tween:Play()
     return tween
 end
 
+-- UPDATED DRAGIFY
 function utility.dragify(object, inputFrame)
     local dragging, dragInput, dragStart, startPos
-    local targetInput = inputFrame or object 
+    local targetInput = inputFrame or object
 
     targetInput.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = object.Position 
+            startPos = object.Position
             
             local connection
             connection = input.Changed:Connect(function()
@@ -130,15 +101,24 @@ function library:Notify(options)
     local notifyFrame = utility.create("Frame", {
         Size = UDim2.new(0, 240, 0, 0),
         Position = UDim2.new(1, 270, 1, 0),
-        BackgroundColor3 = library.theme.bg,
+        BackgroundColor3 = Color3.fromRGB(15, 15, 15),
         BorderSizePixel = 0,
         Parent = notifyHolder,
         AnchorPoint = Vector2.new(1,1)
     })
     notifyFrame.AutomaticSize = Enum.AutomaticSize.Y
 
-    -- Add Shadow to Notification
-    utility.shadow(notifyFrame, 4, 0.6, 4)
+    -- UI POLISH: Shadow & Corners
+    local notifyCorner = utility.create("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = notifyFrame
+    })
+    local notifyShadow = utility.create("UIShadow", {
+        Offset = Vector2.new(0, 4),
+        Color = Color3.new(0,0,0),
+        Transparency = 0.4,
+        Parent = notifyFrame
+    })
 
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
@@ -156,7 +136,7 @@ function library:Notify(options)
 
     local contentFrame = utility.create("Frame", {
         Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = library.theme.bg,
+        BackgroundColor3 = Color3.fromRGB(15, 15, 15),
         BorderSizePixel = 0,
         Parent = notifyFrame
     })
@@ -174,7 +154,7 @@ function library:Notify(options)
         Text = options.Title or "Notification",
         TextColor3 = library.accent,
         TextSize = 13,
-        Font = Enum.Font.GothamBold, -- UPGRADE: Font
+        Font = Enum.Font.Code,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 2,
         Parent = contentFrame
@@ -185,9 +165,9 @@ function library:Notify(options)
         Position = UDim2.new(0, 4, 0, 0),
         BackgroundTransparency = 1,
         Text = options.Content or "Message",
-        TextColor3 = library.theme.text,
+        TextColor3 = Color3.fromRGB(200, 200, 200),
         TextSize = 11,
-        Font = Enum.Font.Gotham, -- UPGRADE: Font
+        Font = Enum.Font.Code,
         TextWrapped = true,
         TextXAlignment = Enum.TextXAlignment.Left,
         AutomaticSize = Enum.AutomaticSize.Y, 
@@ -218,11 +198,22 @@ function library:Window(name)
         Name = "Holder",
         Size = UDim2.new(0, 550, 0, 420),
         Position = UDim2.new(0.5, -275, 0.5, -210),
-        BackgroundColor3 = library.theme.bg, -- UPGRADE: Dark Gray
+        BackgroundColor3 = Color3.fromRGB(10, 10, 10),
         BorderSizePixel = 0,
         Parent = gui
     })
-    utility.shadow(holder, 6, 0.4) -- UPGRADE: Window Shadow
+
+    -- POLISH: Add Corner & Shadow to Main Window
+    local mainCorner = utility.create("UICorner", {
+        CornerRadius = UDim.new(0, 12),
+        Parent = holder
+    })
+    local mainShadow = utility.create("UIShadow", {
+        Offset = Vector2.new(0, 6),
+        Color = Color3.new(0,0,0),
+        Transparency = 0.4,
+        Parent = holder
+    })
 
     -- ==========================================
     -- TOGGLE GUI / WATERMARK
@@ -237,23 +228,40 @@ function library:Window(name)
     toggleBtn.Name = "ToggleBtn"
     toggleBtn.Size = UDim2.new(0, 110, 0, 30)
     toggleBtn.Position = UDim2.new(0, 20, 0, 10)
-    toggleBtn.BackgroundColor3 = library.theme.topbar
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     toggleBtn.BorderSizePixel = 0
     toggleBtn.Text = "ZalHub [ON]"
     toggleBtn.TextColor3 = library.accent
-    toggleBtn.Font = Enum.Font.GothamBold -- UPGRADE
+    toggleBtn.Font = Enum.Font.Code
     toggleBtn.TextSize = 14
     toggleBtn.ZIndex = 100
     toggleBtn.Parent = toggleGui
 
-    local tCorner = Instance.new("UICorner")
-    tCorner.CornerRadius = UDim.new(0, 5)
-    tCorner.Parent = toggleBtn
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 5)
+    corner.Parent = toggleBtn
 
-    local tStroke = Instance.new("UIStroke")
-    tStroke.Color = library.accent
-    tStroke.Thickness = 1
-    tStroke.Parent = toggleBtn
+    -- POLISH: Gradient Background for Toggle Button
+    local toggleGrad = utility.create("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 25)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 35))
+        }),
+        Rotation = 90,
+        Parent = toggleBtn
+    })
+    
+    local toggleStroke = Instance.new("UIStroke")
+    toggleStroke.Color = library.accent
+    toggleStroke.Thickness = 1
+    toggleStroke.Parent = toggleBtn
+    
+    local toggleShadow = utility.create("UIShadow", {
+        Offset = Vector2.new(0, 3),
+        Color = Color3.new(0,0,0),
+        Transparency = 0.3,
+        Parent = toggleBtn
+    })
 
     local isOpen = true
 
@@ -264,11 +272,11 @@ function library:Window(name)
         if isOpen then
             toggleBtn.Text = "ZalHub [ON]"
             toggleBtn.TextColor3 = library.accent
-            tStroke.Color = library.accent
+            toggleStroke.Color = library.accent
         else
             toggleBtn.Text = "ZalHub [OFF]"
-            toggleBtn.TextColor3 = library.theme.text_sub
-            tStroke.Color = library.theme.text_sub
+            toggleBtn.TextColor3 = Color3.fromRGB(80, 80, 80)
+            toggleStroke.Color = Color3.fromRGB(80, 80, 80)
         end
     end
 
@@ -280,7 +288,6 @@ function library:Window(name)
         end
     end)
     utility.dragify(toggleBtn, toggleBtn)
-    utility.shadow(toggleBtn, 3, 0.3) -- Shadow for watermark
     -- ==========================================
 
     local border = utility.create("Frame", {
@@ -307,27 +314,31 @@ function library:Window(name)
 
     local mainBG = utility.create("Frame", {
         Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = library.theme.bg,
+        BackgroundColor3 = Color3.fromRGB(15, 15, 15),
         BorderSizePixel = 0,
         ZIndex = 1,
         Parent = holder
     })
+    -- Round inner corners
+    local innerCorner = utility.create("UICorner", {
+        CornerRadius = UDim.new(0, 10),
+        Parent = mainBG
+    })
 
     local topBar = utility.create("Frame", {
         Size = UDim2.new(1, 0, 0, 35),
-        BackgroundColor3 = library.theme.topbar, -- UPGRADE
+        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
         BorderSizePixel = 0,
         ZIndex = 2,
         Parent = mainBG
     })
-    
-    -- UPGRADE: Subtle Gradient on TopBar
+    -- POLISH: Top bar gradient
     utility.create("UIGradient", {
         Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, library.theme.topbar),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 38))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 25)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 18, 18))
         }),
-        Rotation = 0,
+        Rotation = 90,
         Parent = topBar
     })
 
@@ -338,7 +349,7 @@ function library:Window(name)
         Text = name,
         TextColor3 = library.accent,
         TextSize = 16,
-        Font = Enum.Font.GothamBold, -- UPGRADE
+        Font = Enum.Font.Code,
         TextStrokeTransparency = 0.5,
         TextXAlignment = Enum.TextXAlignment.Left,
         ZIndex = 3,
@@ -378,9 +389,9 @@ function library:Window(name)
             Size = UDim2.new(0, 60, 0, 25),
             BackgroundTransparency = 1,
             Text = tabName,
-            TextColor3 = library.theme.text_sub, -- UPGRADE: Muted unselected
+            TextColor3 = Color3.fromRGB(120, 120, 120),
             TextSize = 13,
-            Font = Enum.Font.Gotham, -- UPGRADE
+            Font = Enum.Font.Code,
             ZIndex = 4,
             Parent = tabContainer
         })
@@ -404,6 +415,7 @@ function library:Window(name)
             Parent = content
         })
 
+        -- CREATE TWO SCROLLING COLUMNS
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, -10, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
@@ -449,7 +461,7 @@ function library:Window(name)
         local function select()
             if currentTab then
                 currentTab.Frame.Visible = false
-                utility.tween(currentTab.Btn, {0.2}, {TextColor3 = library.theme.text_sub})
+                utility.tween(currentTab.Btn, {0.2}, {TextColor3 = Color3.fromRGB(120, 120, 120)})
                 utility.tween(currentTab.Line, {0.2}, {BackgroundTransparency = 1})
             end
             tabFrame.Visible = true
@@ -481,27 +493,27 @@ function library:Window(name)
             currentSectionIndex = currentSectionIndex + 1
 
             local sectionFrame = utility.create("Frame", {
-                BackgroundColor3 = library.theme.section, -- UPGRADE: Distinct Color
-                BorderSizePixel = 0, -- UPGRADE: No border for cleaner look
+                BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+                BorderSizePixel = 0, -- Removed border for smoother look
                 AutomaticSize = Enum.AutomaticSize.Y,
                 Size = UDim2.new(1, 0, 0, 0),
                 ZIndex = 4,
                 Parent = targetCol
             })
-            utility.shadow(sectionFrame, 2, 0.3, 4) -- UPGRADE: Section Shadow
-            
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0, 6) -- UPGRADE: Rounder
-            corner.Parent = sectionFrame
+            -- POLISH: Section corners
+            utility.create("UICorner", {
+                CornerRadius = UDim.new(0, 6),
+                Parent = sectionFrame
+            })
             
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -10, 0, 25),
                 Position = UDim2.new(0, 8, 0, 0),
                 BackgroundTransparency = 1,
                 Text = sectionName:upper(),
-                TextColor3 = library.theme.text,
+                TextColor3 = library.accent,
                 TextSize = 13,
-                Font = Enum.Font.GothamBold, -- UPGRADE
+                Font = Enum.Font.Code,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex = 5,
                 Parent = sectionFrame
@@ -531,19 +543,24 @@ function library:Window(name)
                     ZIndex = 6,
                     Parent = items
                 })
+                -- HOVER EFFECT
+                toggle.MouseEnter:Connect(function()
+                    utility.tween(toggle, {0.1}, {BackgroundTransparency = 0.95, BackgroundColor3 = Color3.fromRGB(30,30,30)})
+                end)
+                toggle.MouseLeave:Connect(function()
+                    utility.tween(toggle, {0.1}, {BackgroundTransparency = 1})
+                end)
+
                 local box = utility.create("Frame", {
                     Size = UDim2.new(0, 14, 0, 14),
                     Position = UDim2.new(0, 0, 0.5, -7),
-                    BackgroundColor3 = library.theme.item,
-                    BorderSizePixel = 0, -- UPGRADE: No Border
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+                    BorderSizePixel = 0, -- Removed border
                     ZIndex = 7,
                     Parent = toggle
                 })
-                utility.shadow(box, 2, 0.4) -- UPGRADE: Box Shadow
-                local bCorner = Instance.new("UICorner")
-                bCorner.CornerRadius = UDim.new(0, 4) -- UPGRADE: Round Box
-                bCorner.Parent = box
-                
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 3), Parent = box})
+
                 local fill = utility.create("Frame", {
                     Size = UDim2.new(1, -4, 1, -4),
                     Position = UDim2.new(0, 2, 0, 2),
@@ -553,30 +570,20 @@ function library:Window(name)
                     ZIndex = 8,
                     Parent = box
                 })
-                local fCorner = Instance.new("UICorner")
-                fCorner.CornerRadius = UDim.new(0, 2)
-                fCorner.Parent = fill
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = fill})
 
                 utility.create("TextLabel", {
                     Size = UDim2.new(1, -20, 1, 0),
                     Position = UDim2.new(0, 20, 0, 0),
                     BackgroundTransparency = 1,
                     Text = text,
-                    TextColor3 = library.theme.text,
+                    TextColor3 = Color3.fromRGB(180, 180, 180),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham, -- UPGRADE
+                    Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex = 7,
                     Parent = toggle
                 })
-
-                -- UPGRADE: Hover Effect
-                toggle.MouseEnter:Connect(function()
-                    utility.tween(box, {0.2}, {BackgroundColor3 = library.theme.item_hover})
-                end)
-                toggle.MouseLeave:Connect(function()
-                    utility.tween(box, {0.2}, {BackgroundColor3 = library.theme.item})
-                end)
 
                 local enabled = false
                 toggle.MouseButton1Click:Connect(function()
@@ -598,9 +605,9 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 15),
                     BackgroundTransparency = 1,
                     Text = text,
-                    TextColor3 = library.theme.text,
+                    TextColor3 = Color3.fromRGB(180, 180, 180),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex = 7,
                     Parent = textboxFrame
@@ -608,25 +615,18 @@ function library:Window(name)
                 local box = utility.create("TextBox", {
                     Size = UDim2.new(1, 0, 0, 18),
                     Position = UDim2.new(0, 0, 0, 16),
-                    BackgroundColor3 = library.theme.item,
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                     BorderSizePixel = 0,
                     PlaceholderText = placeholder or "...",
                     Text = "",
                     TextColor3 = Color3.fromRGB(220, 220, 220),
                     PlaceholderColor3 = Color3.fromRGB(80, 80, 80),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     ZIndex = 7,
                     Parent = textboxFrame
                 })
-                local tCorner = Instance.new("UICorner")
-                tCorner.CornerRadius = UDim.new(0, 3)
-                tCorner.Parent = box
-
-                -- UPGRADE: Hover/Focus
-                box.Focused:Connect(function() utility.tween(box, {0.2}, {BackgroundColor3 = library.theme.item_hover}) end)
-                box.FocusLost:Connect(function() utility.tween(box, {0.2}, {BackgroundColor3 = library.theme.item}) end)
-
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = box})
                 box.FocusLost:Connect(function()
                     library.flags[flag] = box.Text
                     callback(box.Text)
@@ -644,9 +644,9 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 15),
                     BackgroundTransparency = 1,
                     Text = text,
-                    TextColor3 = library.theme.text,
+                    TextColor3 = Color3.fromRGB(180, 180, 180),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex = 7,
                     Parent = dropdown
@@ -654,27 +654,25 @@ function library:Window(name)
                 local btn = utility.create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 18),
                     Position = UDim2.new(0, 0, 0, 16),
-                    BackgroundColor3 = library.theme.item,
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                     BorderSizePixel = 0,
                     Text = "Select...",
-                    TextColor3 = library.theme.text_sub,
+                    TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     ZIndex = 7,
                     Parent = dropdown
                 })
-                local bCorner = Instance.new("UICorner")
-                bCorner.CornerRadius = UDim.new(0, 3)
-                bCorner.Parent = btn
-                utility.shadow(btn, 2, 0.3)
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = btn})
 
+                -- POLISH: Scrolling List Frame + Shadow
                 local maxDropdownHeight = 150
                 local contentHeight = #list * 18
                 
                 local listFrame = utility.create("ScrollingFrame", {
                     Size = UDim2.new(1, 0, 0, contentHeight),
                     Position = UDim2.new(0, 0, 1, 0),
-                    BackgroundColor3 = library.theme.section,
+                    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
                     BorderSizePixel = 0,
                     Visible = false,
                     ZIndex = 11,
@@ -683,11 +681,16 @@ function library:Window(name)
                     CanvasSize = UDim2.new(1, 0, 0, contentHeight),
                     Parent = btn
                 })
-                local lCorner = Instance.new("UICorner")
-                lCorner.CornerRadius = UDim.new(0, 3)
-                lCorner.Parent = listFrame
-                utility.shadow(listFrame, 4, 0.2, 0) -- Shadow behind list
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = listFrame})
                 
+                -- DROPDOWN SHADOW
+                local listShadow = utility.create("UIShadow", {
+                    Offset = Vector2.new(0, 4),
+                    Color = Color3.new(0,0,0),
+                    Transparency = 0.5,
+                    Parent = listFrame
+                })
+
                 utility.create("UIListLayout", {Parent = listFrame})
 
                 local opened = false
@@ -699,32 +702,23 @@ function library:Window(name)
                         listFrame.Size = UDim2.new(1, 0, 0, math.min(contentHeight, maxDropdownHeight))
                         listFrame.CanvasSize = UDim2.new(1, 0, 0, contentHeight)
                         listFrame.CanvasPosition = Vector2.new(0, 0)
-                        utility.tween(btn, {0.2}, {TextColor3 = library.accent})
                     else
                         listFrame.Size = UDim2.new(1, 0, 0, 0)
-                        utility.tween(btn, {0.2}, {TextColor3 = library.theme.text_sub})
                     end
                 end)
 
                 for _, v in next, list do
                     local item = utility.create("TextButton", {
                         Size = UDim2.new(1, 0, 0, 18),
-                        BackgroundColor3 = library.theme.section,
+                        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
                         BorderSizePixel = 0,
                         Text = v,
-                        TextColor3 = library.theme.text,
+                        TextColor3 = Color3.fromRGB(160, 160, 160),
                         TextSize = 12,
-                        Font = Enum.Font.Gotham,
+                        Font = Enum.Font.Code,
                         ZIndex = 12,
                         Parent = listFrame
                     })
-                    item.MouseEnter:Connect(function()
-                        item.BackgroundColor3 = library.theme.item_hover
-                    end)
-                    item.MouseLeave:Connect(function()
-                        item.BackgroundColor3 = library.theme.section
-                    end)
-                    
                     item.MouseButton1Click:Connect(function()
                         btn.Text = v
                         opened = false
@@ -732,7 +726,13 @@ function library:Window(name)
                         listFrame.Size = UDim2.new(1, 0, 0, 0)
                         library.flags[flag] = v
                         callback(v)
-                        utility.tween(btn, {0.2}, {TextColor3 = library.theme.text_sub})
+                    end)
+                    -- HOVER FOR ITEMS
+                    item.MouseEnter:Connect(function()
+                        item.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                    end)
+                    item.MouseLeave:Connect(function()
+                        item.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
                     end)
                 end
             end
@@ -748,9 +748,9 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 0, 15),
                     BackgroundTransparency = 1,
                     Text = text,
-                    TextColor3 = library.theme.text,
+                    TextColor3 = Color3.fromRGB(180, 180, 180),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     ZIndex = 7,
                     Parent = slider
@@ -758,16 +758,14 @@ function library:Window(name)
                 local bg = utility.create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 14),
                     Position = UDim2.new(0, 0, 0, 18),
-                    BackgroundColor3 = library.theme.item,
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                     BorderSizePixel = 0,
                     Text = "",
                     ZIndex = 7,
                     Parent = slider
                 })
-                local bgCorner = Instance.new("UICorner")
-                bgCorner.CornerRadius = UDim.new(0, 3)
-                bgCorner.Parent = bg
-
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = bg})
+                
                 local fill = utility.create("Frame", {
                     Size = UDim2.new((default - min) / (max - min), 0, 1, 0),
                     BackgroundColor3 = library.accent,
@@ -775,28 +773,15 @@ function library:Window(name)
                     ZIndex = 8,
                     Parent = bg
                 })
-                local fCorner = Instance.new("UICorner")
-                fCorner.CornerRadius = UDim.new(0, 2)
-                fCorner.Parent = fill
-                
-                -- UPGRADE: Gradient on Slider Fill
-                utility.create("UIGradient", {
-                    Color = ColorSequence.new({
-                        ColorSequenceKeypoint.new(0, library.accent),
-                        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 60, 255))
-                    }),
-                    Rotation = 90,
-                    Parent = fill
-                })
-                utility.shadow(bg, 2, 0.3)
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = fill})
 
                 local val = utility.create("TextLabel", {
                     Size = UDim2.new(1, 0, 1, 0),
                     BackgroundTransparency = 1,
                     Text = string.format("%.2f", default),
-                    TextColor3 = library.theme.text,
+                    TextColor3 = Color3.fromRGB(255,255,255),
                     TextSize = 11,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     ZIndex = 9,
                     Parent = bg
                 })
@@ -831,28 +816,25 @@ function library:Window(name)
             function sectionActions:Button(text, callback)
                 local btn = utility.create("TextButton", {
                     Size = UDim2.new(1, 0, 0, 24),
-                    BackgroundColor3 = library.theme.item,
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                     BorderSizePixel = 0,
                     Text = text,
-                    TextColor3 = library.theme.text,
+                    TextColor3 = Color3.fromRGB(200, 200, 200),
                     TextSize = 12,
-                    Font = Enum.Font.Gotham,
+                    Font = Enum.Font.Code,
                     ZIndex = 6,
                     Parent = items
                 })
-                local bCorner = Instance.new("UICorner")
-                bCorner.CornerRadius = UDim.new(0, 3)
-                bCorner.Parent = btn
-                utility.shadow(btn, 2, 0.3) -- UPGRADE: Button Shadow
-
-                -- UPGRADE: Hover Effects
+                utility.create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = btn})
+                
+                -- HOVER
                 btn.MouseEnter:Connect(function()
-                    utility.tween(btn, {0.2}, {BackgroundColor3 = library.theme.item_hover})
+                    utility.tween(btn, {0.1}, {BackgroundColor3 = Color3.fromRGB(35, 35, 35)})
                 end)
                 btn.MouseLeave:Connect(function()
-                    utility.tween(btn, {0.2}, {BackgroundColor3 = library.theme.item})
+                    utility.tween(btn, {0.1}, {BackgroundColor3 = Color3.fromRGB(25, 25, 25)})
                 end)
-
+                
                 btn.MouseButton1Click:Connect(callback)
             end
 
