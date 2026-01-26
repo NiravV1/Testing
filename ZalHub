@@ -499,7 +499,7 @@ function library:Window(name)
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, 8),
+                Padding = UDim.new(0, 0),  -- Decreased by 8 from 8 to 0
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
