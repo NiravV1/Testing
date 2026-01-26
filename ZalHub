@@ -394,21 +394,21 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- Modified padding (decreased by 4)
+        -- 1PX PADDING ONLY
         utility.create("UIPadding", {
             Parent = leftCol,
-            PaddingLeft = UDim.new(0, 0),  -- was 1
-            PaddingRight = UDim.new(0, 0), -- was 1
-            PaddingTop = UDim.new(0, 6),   -- was 10
-            PaddingBottom = UDim.new(0, 6) -- was 10
+            PaddingLeft = UDim.new(0, 1),
+            PaddingRight = UDim.new(0, 1),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
         })
 
         utility.create("UIPadding", {
             Parent = rightCol,
-            PaddingLeft = UDim.new(0, 0),
-            PaddingRight = UDim.new(0, 0),
-            PaddingTop = UDim.new(0, 6),
-            PaddingBottom = UDim.new(0, 6)
+            PaddingLeft = UDim.new(0, 1),
+            PaddingRight = UDim.new(0, 1),
+            PaddingTop = UDim.new(0, 10),
+            PaddingBottom = UDim.new(0, 10)
         })
 
         local leftList = utility.create("UIListLayout", {
@@ -499,7 +499,7 @@ function library:Window(name)
                 Parent = sectionFrame
             })
             local itemLayout = utility.create("UIListLayout", {
-                Padding = UDim.new(0, 8),
+                Padding = UDim.new(0, 0),  -- Decreased by 8 from 8 to 0
                 SortOrder = Enum.SortOrder.LayoutOrder,
                 Parent = items
             })
