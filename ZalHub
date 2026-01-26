@@ -101,14 +101,14 @@ function library:Notify(options)
         BackgroundColor3 = Color3.fromRGB(15, 15, 15),
         BorderSizePixel = 0,
         Parent = notifyHolder,
-        AnchorPoint = Vector2.new(1, 1)
+        AnchorPoint = Vector2.new(1,1)
     })
     notifyFrame.AutomaticSize = Enum.AutomaticSize.Y
 
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
         Position = UDim2.new(0, -2, 0, -2),
-        BackgroundColor3 = Color3.fromRGB(255,255, 255),
+        BackgroundColor3 = Color3.fromRGB(255,255,255),
         BorderSizePixel = 0,
         ZIndex = 0,
         Parent = notifyFrame
@@ -192,7 +192,7 @@ function library:Window(name)
     local border = utility.create("Frame", {
         Size = UDim2.new(1, 4, 1, 4),
         Position = UDim2.new(0, -2, 0, -2),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundColor3 = Color3.fromRGB(255,255,255),
         BorderSizePixel = 0,
         ZIndex = 0,
         Parent = holder
@@ -293,21 +293,23 @@ function library:Window(name)
             Size = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
-            ScrollBarThickness = 0,
+            ScrollBarThickness = 5, -- ENABLED SCROLLBAR SO YOU CAN SCROLL LONG CONTENT
+            ScrollBarImageColor3 = Color3.fromRGB(50, 50, 50),
             Visible = false,
             ZIndex = 2,
             Parent = content
         })
 
-        local grid = utility.create("UIGridLayout", {
-            CellPadding = UDim2.new(0, 12, 0, 12),
-            CellSize = UDim2.new(0.5, -6, 0, 280),
+        -- CHANGED: Replaced UIGridLayout with UIListLayout for dynamic height
+        -- This removes the "Grid" look but fixes the spacing issues perfectly.
+        local list = utility.create("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 10),
             Parent = tabFrame
         })
 
-        grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            tabFrame.CanvasSize = UDim2.new(0, 0, 0, grid.AbsoluteContentSize.Y)
+        list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            tabFrame.CanvasSize = UDim2.new(0, 0, 0, list.AbsoluteContentSize.Y)
         end)
 
         local function select()
@@ -332,6 +334,8 @@ function library:Window(name)
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 1,
                 BorderColor3 = Color3.fromRGB(30, 30, 30),
+                AutomaticSize = Enum.AutomaticSize.Y, -- AUTOMATIC SIZE ENABLED
+                Size = UDim2.new(1, 0, 0, 0), -- Height 0, grows automatically
                 ZIndex = 3,
                 Parent = tabFrame
             })
@@ -350,9 +354,10 @@ function library:Window(name)
             })
 
             local items = utility.create("Frame", {
-                Size = UDim2.new(1, -16, 1, -30),
+                Size = UDim2.new(1, -16, 0, 0), -- Height 0, grows automatically
                 Position = UDim2.new(0, 8, 0, 25),
                 BackgroundTransparency = 1,
+                AutomaticSize = Enum.AutomaticSize.Y, -- AUTOMATIC SIZE ENABLED
                 ZIndex = 4,
                 Parent = sectionFrame
             })
@@ -557,7 +562,7 @@ function library:Window(name)
                     Size = UDim2.new(1, 0, 1, 0),
                     BackgroundTransparency = 1,
                     Text = string.format("%.2f", default),
-                    TextColor3 = Color3.fromRGB(255,255, 255),
+                    TextColor3 = Color3.fromRGB(255,255,255),
                     TextSize = 11,
                     Font = Enum.Font.Code,
                     ZIndex = 8,
@@ -565,7 +570,7 @@ function library:Window(name)
                 })
 
                 local function update(input)
-                    local perc = math.clamp((input.Position.X - bg.AbsolutePosition.X) / bg.AbsoluteSize.X,0, 1)
+                    local perc = math.clamp((input.Position.X - bg.AbsolutePosition.X) / bg.AbsoluteSize.X,0,1)
                     local rawValue = min + (max - min) * perc
                     local value = tonumber(string.format("%.2f", rawValue))
                     utility.tween(fill, {0.1}, {Size = UDim2.new(perc, 0, 1, 0)})
