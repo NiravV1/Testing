@@ -2,10 +2,14 @@ repeat
     wait()
 until game:IsLoaded()
 
+repeat
+    wait()
+until game:IsLoaded()
+
 local library = {
     flags = {},
-    accent = Color3.fromRGB(140, 60, 255),
-    outline = { Color3.fromRGB(140, 60, 255), Color3.fromRGB(223, 57, 137) },
+    accent = Color3.fromRGB(140, 60,255),
+    outline = { Color3.fromRGB(140, 60,255), Color3.fromRGB(223, 57, 137) },
     toggled = true,
 }
 
@@ -41,7 +45,7 @@ end
 
 function utility.stroke(obj, color, thickness)
     local stroke = Instance.new("UIStroke")
-    stroke.Color = color or Color3.fromRGB(50, 50, 50)
+    stroke.Color = color or Color3.fromRGB(50,50,50)
     stroke.Thickness = thickness or 1
     stroke.Transparency = 0.5
     stroke.Parent = obj
@@ -315,12 +319,13 @@ function library:Window(name)
         Position = UDim2.new(0, 150, 0, 0),
         BackgroundTransparency = 1,
         ZIndex = 3,
+        ClipsDescendants = true, -- FIX: Prevents drawing outside the box
         Parent = topBar
     })
     utility.create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 20),
+        Padding = UDim.new(0, 15), -- FIX: 15px perfect gap
         VerticalAlignment = Enum.VerticalAlignment.Center,
         Parent = tabContainer
     })
@@ -339,13 +344,16 @@ function library:Window(name)
     local windowActions = {}
 
     function windowActions:Tab(tabName)
+        -- FIX: Automatic Size for buttons to fit text perfectly
         local tabBtn = utility.create("TextButton", {
-            Size = UDim2.new(0, 90, 0, 35),
+            Size = UDim2.new(0, 0, 0, 35), -- Width 0, Height 35
+            AutomaticSize = Enum.AutomaticSize.X, -- Grows to fit text
             BackgroundTransparency = 1,
             Text = tabName,
             TextColor3 = Color3.fromRGB(120, 120, 120),
             TextSize = 15,
             Font = Enum.Font.Code,
+            TextXAlignment = Enum.TextXAlignment.Center, -- Center text in the box
             ZIndex = 4,
             Parent = tabContainer
         })
