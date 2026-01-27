@@ -319,7 +319,7 @@ function library:Window(name)
         Position = UDim2.new(0, 150, 0, 0),
         BackgroundTransparency = 1,
         ZIndex = 3,
-        ClipsDescendants = true, -- FIX: Prevents drawing outside the box
+        ClipsDescendants = true, -- FIX: Prevents drawing outside box
         Parent = topBar
     })
     utility.create("UIListLayout", {
@@ -353,7 +353,7 @@ function library:Window(name)
             TextColor3 = Color3.fromRGB(120, 120, 120),
             TextSize = 15,
             Font = Enum.Font.Code,
-            TextXAlignment = Enum.TextXAlignment.Center, -- Center text in the box
+            TextXAlignment = Enum.TextXAlignment.Center, -- Center text in box
             ZIndex = 4,
             Parent = tabContainer
         })
@@ -470,11 +470,84 @@ function library:Window(name)
         local tabActions = {}
         local currentSectionIndex = 0
 
+        function tabActions:Search(placeholder)
+            local searchFrame = utility.create("Frame", {
+                Name = "SearchFrame",
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+                ZIndex = 5,
+                Parent = leftCol
+            })
+            utility.stroke(searchFrame, Color3.fromRGB(50, 50, 50), 1)
+            -- Put at top of list
+            searchFrame.LayoutOrder = -999
+
+            local icon = utility.create("TextLabel", {
+                Size = UDim2.new(0, 30, 1, 0),
+                BackgroundTransparency = 1,
+                Text = "🔍",
+                TextSize = 14,
+                TextColor3 = Color3.fromRGB(100, 100, 100),
+                Font = Enum.Font.Code,
+                TextXAlignment = Enum.TextXAlignment.Center,
+                ZIndex = 6,
+                Parent = searchFrame
+            })
+
+            local box = utility.create("TextBox", {
+                Size = UDim2.new(1, -30, 1, 0),
+                Position = UDim2.new(0, 30, 0, 0),
+                BackgroundTransparency = 1,
+                Text = "",
+                PlaceholderText = placeholder or "Search Sections...",
+                PlaceholderColor3 = Color3.fromRGB(80, 80, 80),
+                TextColor3 = Color3.fromRGB(200, 200, 200),
+                TextSize = 14,
+                Font = Enum.Font.Code,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ClearTextOnFocus = false,
+                ZIndex = 6,
+                Parent = searchFrame
+            })
+
+            -- Logic to filter sections
+            box:GetPropertyChangedSignal("Text"):Connect(function()
+                local query = string.lower(box.Text)
+                
+                if query == "" then
+                    -- Show all sections
+                    for _, col in pairs({leftCol, rightCol}) do
+                        for _, child in pairs(col:GetChildren()) do
+                            if child.Name == "ZalSection" then
+                                child.Visible = true
+                            end
+                        end
+                    end
+                else
+                    -- Filter sections
+                    for _, col in pairs({leftCol, rightCol}) do
+                        for _, child in pairs(col:GetChildren()) do
+                            if child.Name == "ZalSection" then
+                                local title = child:FindFirstChildWhichIsA("TextLabel")
+                                if title and string.find(string.lower(title.Text), query) then
+                                    child.Visible = true
+                                else
+                                    child.Visible = false
+                                end
+                            end
+                        end
+                    end
+                end
+                updateCanvas()
+            end)
+        end
+
         function tabActions:Section(sectionName)
             local targetCol = currentSectionIndex % 2 == 0 and leftCol or rightCol
             currentSectionIndex = currentSectionIndex + 1
 
             local sectionFrame = utility.create("Frame", {
+                Name = "ZalSection", -- Important for Search filtering
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
                 AutomaticSize = Enum.AutomaticSize.Y,
