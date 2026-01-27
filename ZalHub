@@ -2,10 +2,6 @@ repeat
     wait()
 until game:IsLoaded()
 
-repeat
-    wait()
-until game:IsLoaded()
-
 local library = {
     flags = {},
     accent = Color3.fromRGB(140, 60,255),
@@ -319,15 +315,55 @@ function library:Window(name)
         Position = UDim2.new(0, 150, 0, 0),
         BackgroundTransparency = 1,
         ZIndex = 3,
-        ClipsDescendants = true, -- FIX: Prevents drawing outside box
+        ClipsDescendants = true,
         Parent = topBar
     })
     utility.create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 15), -- FIX: 15px perfect gap
+        Padding = UDim.new(0, 15),
         VerticalAlignment = Enum.VerticalAlignment.Center,
         Parent = tabContainer
+    })
+
+    -- === GLOBAL SEARCH BAR (placed in top bar, right side) ===
+    local searchContainer = utility.create("Frame", {
+        Name = "GlobalSearch",
+        Size = UDim2.new(0, 220, 0, 32),
+        Position = UDim2.new(1, -240, 0.5, -16),  -- Right-aligned, centered vertically in topBar
+        BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+        BorderSizePixel = 0,
+        ZIndex = 5,
+        Parent = topBar
+    })
+    utility.stroke(searchContainer, Color3.fromRGB(50, 50, 50), 1)
+    local searchCorner = utility.create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = searchContainer})
+
+    local searchIcon = utility.create("TextLabel", {
+        Size = UDim2.new(0, 30, 1, 0),
+        BackgroundTransparency = 1,
+        Text = "🔍",
+        TextColor3 = Color3.fromRGB(100, 100, 100),
+        TextSize = 16,
+        Font = Enum.Font.Code,
+        ZIndex = 6,
+        Parent = searchContainer
+    })
+
+    local searchBox = utility.create("TextBox", {
+        Size = UDim2.new(1, -35, 1, -6),
+        Position = UDim2.new(0, 32, 0, 3),
+        BackgroundTransparency = 1,
+        Text = "",
+        PlaceholderText = "Search Options...",
+        PlaceholderColor3 = Color3.fromRGB(80, 80, 80),
+        TextColor3 = Color3.fromRGB(200, 200, 200),
+        TextSize = 14,
+        Font = Enum.Font.Code,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ClearTextOnFocus = false,
+        ZIndex = 6,
+        Parent = searchContainer
     })
 
     local content = utility.create("Frame", {
@@ -344,16 +380,15 @@ function library:Window(name)
     local windowActions = {}
 
     function windowActions:Tab(tabName)
-        -- FIX: Automatic Size for buttons to fit text perfectly
         local tabBtn = utility.create("TextButton", {
-            Size = UDim2.new(0, 0, 0, 35), -- Width 0, Height 35
-            AutomaticSize = Enum.AutomaticSize.X, -- Grows to fit text
+            Size = UDim2.new(0, 0, 0, 35),
+            AutomaticSize = Enum.AutomaticSize.X,
             BackgroundTransparency = 1,
             Text = tabName,
             TextColor3 = Color3.fromRGB(120, 120, 120),
             TextSize = 15,
             Font = Enum.Font.Code,
-            TextXAlignment = Enum.TextXAlignment.Center, -- Center text in box
+            TextXAlignment = Enum.TextXAlignment.Center,
             ZIndex = 4,
             Parent = tabContainer
         })
@@ -377,7 +412,6 @@ function library:Window(name)
             Parent = content
         })
 
-        -- 4PX GAP (columns separated)
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, -2, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
@@ -402,7 +436,6 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- 1PX PADDING ONLY
         utility.create("UIPadding", {
             Parent = leftCol,
             PaddingLeft = UDim.new(0, 1),
@@ -461,7 +494,14 @@ function library:Window(name)
 
             utility.tween(tabBtn, {0.2}, {TextColor3 = library.accent})
             utility.tween(underline, {0.2}, {BackgroundTransparency = 0})
-            currentTab = {Frame = tabFrame, Btn = tabBtn, Line = underline}
+            
+            currentTab = {
+                Frame = tabFrame,
+                Btn = tabBtn,
+                Line = underline,
+                LeftCol = leftCol,
+                RightCol = rightCol
+            }
         end
 
         tabBtn.MouseButton1Click:Connect(select)
@@ -470,84 +510,15 @@ function library:Window(name)
         local tabActions = {}
         local currentSectionIndex = 0
 
-        function tabActions:Search(placeholder)
-            local searchFrame = utility.create("Frame", {
-                Name = "SearchFrame",
-                Size = UDim2.new(1, 0, 0, 30),
-                BackgroundColor3 = Color3.fromRGB(18, 18, 18),
-                ZIndex = 5,
-                Parent = leftCol
-            })
-            utility.stroke(searchFrame, Color3.fromRGB(50, 50, 50), 1)
-            -- Put at top of list
-            searchFrame.LayoutOrder = -999
-
-            local icon = utility.create("TextLabel", {
-                Size = UDim2.new(0, 30, 1, 0),
-                BackgroundTransparency = 1,
-                Text = "🔍",
-                TextSize = 14,
-                TextColor3 = Color3.fromRGB(100, 100, 100),
-                Font = Enum.Font.Code,
-                TextXAlignment = Enum.TextXAlignment.Center,
-                ZIndex = 6,
-                Parent = searchFrame
-            })
-
-            local box = utility.create("TextBox", {
-                Size = UDim2.new(1, -30, 1, 0),
-                Position = UDim2.new(0, 30, 0, 0),
-                BackgroundTransparency = 1,
-                Text = "",
-                PlaceholderText = placeholder or "Search Sections...",
-                PlaceholderColor3 = Color3.fromRGB(80, 80, 80),
-                TextColor3 = Color3.fromRGB(200, 200, 200),
-                TextSize = 14,
-                Font = Enum.Font.Code,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                ClearTextOnFocus = false,
-                ZIndex = 6,
-                Parent = searchFrame
-            })
-
-            -- Logic to filter sections
-            box:GetPropertyChangedSignal("Text"):Connect(function()
-                local query = string.lower(box.Text)
-                
-                if query == "" then
-                    -- Show all sections
-                    for _, col in pairs({leftCol, rightCol}) do
-                        for _, child in pairs(col:GetChildren()) do
-                            if child.Name == "ZalSection" then
-                                child.Visible = true
-                            end
-                        end
-                    end
-                else
-                    -- Filter sections
-                    for _, col in pairs({leftCol, rightCol}) do
-                        for _, child in pairs(col:GetChildren()) do
-                            if child.Name == "ZalSection" then
-                                local title = child:FindFirstChildWhichIsA("TextLabel")
-                                if title and string.find(string.lower(title.Text), query) then
-                                    child.Visible = true
-                                else
-                                    child.Visible = false
-                                end
-                            end
-                        end
-                    end
-                end
-                updateCanvas()
-            end)
-        end
+        -- Removed per-tab Search function (since global is used now)
+        -- If you need it back, paste the old :Search code here
 
         function tabActions:Section(sectionName)
             local targetCol = currentSectionIndex % 2 == 0 and leftCol or rightCol
             currentSectionIndex = currentSectionIndex + 1
 
             local sectionFrame = utility.create("Frame", {
-                Name = "ZalSection", -- Important for Search filtering
+                Name = "ZalSection",
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
                 AutomaticSize = Enum.AutomaticSize.Y,
@@ -557,7 +528,6 @@ function library:Window(name)
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
-            -- 1PX INNER PADDING ONLY
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -2, 0, 35),
                 Position = UDim2.new(0, 1, 0, 0),
@@ -861,6 +831,45 @@ function library:Window(name)
 
         return tabActions
     end
+
+    -- Global search logic (filters current tab only)
+    searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local query = string.lower(searchBox.Text)
+        
+        if currentTab and currentTab.LeftCol and currentTab.RightCol then
+            local cols = {currentTab.LeftCol, currentTab.RightCol}
+            
+            for _, col in ipairs(cols) do
+                for _, child in ipairs(col:GetChildren()) do
+                    if child.Name == "ZalSection" then
+                        local title = child:FindFirstChildWhichIsA("TextLabel")
+                        if title then
+                            local match = (query == "") or string.find(string.lower(title.Text), query, 1, true)
+                            child.Visible = match
+                        end
+                    end
+                end
+                
+                col.CanvasPosition = Vector2.new(0, 0)  -- Reset scroll
+            end
+            
+            -- Update canvas sizes after filter (delay for layout to settle)
+            task.delay(0.05, function()
+                if currentTab.LeftCol then
+                    local leftList = currentTab.LeftCol:FindFirstChild("UIListLayout")
+                    if leftList then
+                        currentTab.LeftCol.CanvasSize = UDim2.new(0, 0, 0, leftList.AbsoluteContentSize.Y + 20)
+                    end
+                end
+                if currentTab.RightCol then
+                    local rightList = currentTab.RightCol:FindFirstChild("UIListLayout")
+                    if rightList then
+                        currentTab.RightCol.CanvasSize = UDim2.new(0, 0, 0, rightList.AbsoluteContentSize.Y + 20)
+                    end
+                end
+            end)
+        end
+    end)
 
     return windowActions
 end
