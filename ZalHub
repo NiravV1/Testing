@@ -11,6 +11,7 @@ local library = {
     accent = Color3.fromRGB(140, 60,255),
     outline = { Color3.fromRGB(140, 60,255), Color3.fromRGB(223, 57, 137) },
     toggled = true,
+    -- Registry to track UI elements for config loading
     registry = {
         toggles = {},
         sliders = {},
@@ -92,9 +93,14 @@ function utility.dragify(object, inputFrame)
 end
 
 -- ==========================================
--- CONFIG SYSTEM FILE UTILITIES
+-- CONFIG SYSTEM LOGIC
 -- ==========================================
 local ConfigFolder = "ZalHub/Configs"
+
+-- Internal references to update UI
+local configDropdownFrame = nil 
+local configDropdownList = nil
+local refreshConfigCallback = nil
 
 local function ensureDirectory()
     if makefolder then
@@ -106,7 +112,7 @@ local function ensureDirectory()
     end
 end
 
-local function getConfigList()
+local function getFiles()
     local list = {}
     if listfiles then
         local files = listfiles(ConfigFolder)
@@ -170,39 +176,21 @@ local function loadConfig(name)
     return false
 end
 
-local function deleteConfig(name)
-    if delfile then
-        local path = ConfigFolder .. "/" .. name .. ".json"
-        if isfile(path) then
-            delfile(path)
-            
-            -- Check if autoload is this file and remove it
-            if isfile(ConfigFolder .. "/autoload.txt") then
-                local auto = readfile(ConfigFolder .. "/autoload.txt")
-                if auto == name .. ".json" then
-                    delfile(ConfigFolder .. "/autoload.txt")
-                end
-            end
-            return true
-        end
-    end
-    return false
-end
-
 local function setAutoload(name)
     if not writefile then return end
+    ensureDirectory()
     writefile(ConfigFolder .. "/autoload.txt", name .. ".json")
 end
 
 local function getAutoload()
     if not readfile then return nil end
+    ensureDirectory()
     if isfile(ConfigFolder .. "/autoload.txt") then
         local content = readfile(ConfigFolder .. "/autoload.txt")
         return content:gsub("%.json$", "")
     end
     return nil
 end
-
 
 local notifyHolder = game:GetService("CoreGui"):FindFirstChild("ZalHub_NotifyHolder")
 if not notifyHolder then
@@ -439,13 +427,13 @@ function library:Window(name)
         Position = UDim2.new(0, 150, 0, 0),
         BackgroundTransparency = 1,
         ZIndex = 3,
-        ClipsDescendants = true, -- FIX: Prevents drawing outside box
+        ClipsDescendants = true, 
         Parent = topBar
     })
     utility.create("UIListLayout", {
         FillDirection = Enum.FillDirection.Horizontal,
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 15), -- FIX: 15px perfect gap
+        Padding = UDim.new(0, 15), 
         VerticalAlignment = Enum.VerticalAlignment.Center,
         Parent = tabContainer
     })
@@ -464,16 +452,15 @@ function library:Window(name)
     local windowActions = {}
 
     function windowActions:Tab(tabName)
-        -- FIX: Automatic Size for buttons to fit text perfectly
         local tabBtn = utility.create("TextButton", {
-            Size = UDim2.new(0, 0, 0, 35), -- Width 0, Height 35
-            AutomaticSize = Enum.AutomaticSize.X, -- Grows to fit text
+            Size = UDim2.new(0, 0, 0, 35), 
+            AutomaticSize = Enum.AutomaticSize.X, 
             BackgroundTransparency = 1,
             Text = tabName,
             TextColor3 = Color3.fromRGB(120, 120, 120),
             TextSize = 15,
             Font = Enum.Font.Code,
-            TextXAlignment = Enum.TextXAlignment.Center, -- Center text in box
+            TextXAlignment = Enum.TextXAlignment.Center, 
             ZIndex = 4,
             Parent = tabContainer
         })
@@ -497,7 +484,6 @@ function library:Window(name)
             Parent = content
         })
 
-        -- 4PX GAP (columns separated)
         local leftCol = utility.create("ScrollingFrame", {
             Size = UDim2.new(0.5, -2, 1, 0),
             Position = UDim2.new(0, 0, 0, 0),
@@ -522,7 +508,6 @@ function library:Window(name)
         })
         rightCol.CanvasSize = UDim2.new(0, 0, 0, 1000)
 
-        -- 1PX PADDING ONLY
         utility.create("UIPadding", {
             Parent = leftCol,
             PaddingLeft = UDim.new(0, 1),
@@ -590,6 +575,75 @@ function library:Window(name)
         local tabActions = {}
         local currentSectionIndex = 0
 
+        function tabActions:ConfigManager()
+            local configSection = tabActions:Section("Configuration Manager")
+            
+            -- 1. Name Input
+            configSection:Textbox("Config Name", "config_name", "Type anything...", function() end)
+            
+            -- 2. Create Button
+            configSection:Button("Create Config", function()
+                local name = library.flags.config_name
+                if name and name ~= "" then
+                    if saveConfig(name) then
+                        library:Notify({Title = "Success", Content = "Created config: " .. name, Duration = 3})
+                        if refreshConfigCallback then refreshConfigCallback() end
+                    else
+                        library:Notify({Title = "Error", Content = "Failed to create config.", Duration = 5})
+                    end
+                else
+                    library:Notify({Title = "Error", Content = "Please type a name.", Duration = 3})
+                end
+            end)
+
+            -- 3. Dropdown List
+            local initialList = getFiles()
+            if #initialList == 0 then table.insert(initialList, "No Configs") end
+
+            configSection:Dropdown("Select Config", "selected_config", initialList, function(selected)
+                library.flags.selected_config = selected
+            end)
+
+            -- 4. Load Button
+            configSection:Button("Load Selected", function()
+                local name = library.flags.selected_config
+                if name and name ~= "No Configs" then
+                    if loadConfig(name) then
+                        library:Notify({Title = "Loaded", Content = "Loaded: " .. name, Duration = 3})
+                    else
+                        library:Notify({Title = "Error", Content = "Failed to load.", Duration = 5})
+                    end
+                end
+            end)
+
+            -- 5. Overwrite Button
+            configSection:Button("Overwrite Selected", function()
+                local name = library.flags.selected_config
+                if name and name ~= "No Configs" then
+                    if saveConfig(name) then
+                        library:Notify({Title = "Overwritten", Content = "Updated: " .. name, Duration = 3})
+                    else
+                        library:Notify({Title = "Error", Content = "Failed to overwrite.", Duration = 5})
+                    end
+                end
+            end)
+
+            -- 6. Refresh Button
+            configSection:Button("Refresh List", function()
+                if refreshConfigCallback then refreshConfigCallback() end
+                library:Notify({Title = "Refresh", Content = "Config list updated.", Duration = 2})
+            end)
+
+            -- 7. Auto Load Button
+            configSection:Button("Set Auto-Load", function()
+                local name = library.flags.selected_config
+                if name and name ~= "No Configs" then
+                    setAutoload(name)
+                    library:Notify({Title = "Auto-Load", Content = "Will auto-load: " .. name, Duration = 3})
+                end
+            end)
+        end
+
         function tabActions:Search(placeholder)
             local searchFrame = utility.create("Frame", {
                 Name = "SearchFrame",
@@ -599,7 +653,6 @@ function library:Window(name)
                 Parent = leftCol
             })
             utility.stroke(searchFrame, Color3.fromRGB(50, 50, 50), 1)
-            -- Put at top of list
             searchFrame.LayoutOrder = -999
 
             local icon = utility.create("TextLabel", {
@@ -630,12 +683,10 @@ function library:Window(name)
                 Parent = searchFrame
             })
 
-            -- Logic to filter sections
             box:GetPropertyChangedSignal("Text"):Connect(function()
                 local query = string.lower(box.Text)
                 
                 if query == "" then
-                    -- Show all sections
                     for _, col in pairs({leftCol, rightCol}) do
                         for _, child in pairs(col:GetChildren()) do
                             if child.Name == "ZalSection" then
@@ -644,7 +695,6 @@ function library:Window(name)
                         end
                     end
                 else
-                    -- Filter sections
                     for _, col in pairs({leftCol, rightCol}) do
                         for _, child in pairs(col:GetChildren()) do
                             if child.Name == "ZalSection" then
@@ -667,7 +717,7 @@ function library:Window(name)
             currentSectionIndex = currentSectionIndex + 1
 
             local sectionFrame = utility.create("Frame", {
-                Name = "ZalSection", -- Important for Search filtering
+                Name = "ZalSection", 
                 BackgroundColor3 = Color3.fromRGB(18, 18, 18),
                 BorderSizePixel = 0,
                 AutomaticSize = Enum.AutomaticSize.Y,
@@ -677,7 +727,6 @@ function library:Window(name)
             })
             utility.stroke(sectionFrame, Color3.fromRGB(40, 40, 40), 1)
 
-            -- 1PX INNER PADDING ONLY
             utility.create("TextLabel", {
                 Size = UDim2.new(1, -2, 0, 35),
                 Position = UDim2.new(0, 1, 0, 0),
@@ -833,12 +882,6 @@ function library:Window(name)
                 })
                 utility.stroke(btn, Color3.fromRGB(50, 50, 50), 1)
 
-                -- Registry Hook
-                library.registry.dropdowns[flag] = {
-                    btn = btn,
-                    callback = callback
-                }
-
                 local maxDropdownHeight = 200
                 local contentHeight = #list * 24
 
@@ -874,6 +917,60 @@ function library:Window(name)
                         listFrame.Size = UDim2.new(1, 0, 0, 0)
                     end
                 end)
+
+                -- Function to repopulate the dropdown
+                local function refreshDropdownList(newList)
+                    -- Clear existing
+                    for _, child in pairs(listFrame:GetChildren()) do
+                        if child:IsA("TextButton") then
+                            child:Destroy()
+                        end
+                    end
+                    
+                    -- Create new buttons
+                    for _, v in next, newList do
+                        local item = utility.create("TextButton", {
+                            Size = UDim2.new(1, 0, 0, 24),
+                            BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+                            BorderSizePixel = 0,
+                            Text = v,
+                            TextColor3 = Color3.fromRGB(160, 160, 160),
+                            TextSize = 14,
+                            Font = Enum.Font.Code,
+                            ZIndex = 12,
+                            Parent = listFrame
+                        })
+                        item.MouseButton1Click:Connect(function()
+                            btn.Text = v
+                            opened = false
+                            listFrame.Visible = false
+                            listFrame.Size = UDim2.new(1, 0, 0, 0)
+                            library.flags[flag] = v
+                            callback(v)
+                        end)
+                    end
+                    
+                    -- Update height
+                    contentHeight = #newList * 24
+                    if opened then
+                        listFrame.Size = UDim2.new(1, 0, 0, math.min(contentHeight, maxDropdownHeight))
+                        listFrame.CanvasSize = UDim2.new(1, 0, 0, contentHeight)
+                    end
+                end
+
+                -- Hook refresh for Config Manager specifically
+                if text == "Select Config" then
+                    refreshConfigCallback = function()
+                        local newFiles = getFiles()
+                        refreshDropdownList(newFiles)
+                    end
+                end
+
+                -- Registry Hook
+                library.registry.dropdowns[flag] = {
+                    btn = btn,
+                    callback = callback
+                }
 
                 for _, v in next, list do
                     local item = utility.create("TextButton", {
@@ -1000,99 +1097,6 @@ function library:Window(name)
             return sectionActions
         end
 
-        function tabActions:ConfigManager()
-            local configSection = tabActions:Section("Configuration Manager")
-            
-            -- 1. Config Name Input
-            configSection:Textbox("Config Name", "config_name", "My Config", function() end)
-            
-            -- 2. Action Buttons (Save, Refresh)
-            local btnContainer = utility.create("Frame", {
-                Size = UDim2.new(1, 0, 0, 34),
-                BackgroundTransparency = 1,
-                Parent = -- Need to hook into items container, this is a workaround
-                nil 
-            })
-            -- NOTE: The library structure doesn't easily allow horizontal layouts inside sections without custom code.
-            -- We will stack buttons or use a specific visual hack. For now, we stack them.
-            
-            configSection:Button("💾 Save / Overwrite Config", function()
-                local name = library.flags.config_name
-                if name and name ~= "" then
-                    if saveConfig(name) then
-                        library:Notify({
-                            Title = "Config Saved",
-                            Content = "Successfully saved config: " .. name,
-                            Duration = 3
-                        })
-                    else
-                        library:Notify({
-                            Title = "Error",
-                            Content = "Failed to save config (File API missing?)",
-                            Duration = 5
-                        })
-                    end
-                end
-            end)
-
-            configSection:Button("🔄 Refresh List", function()
-                library:Notify({Title = "Refreshed", Content = "Config list updated.", Duration = 2})
-            end)
-
-            -- 3. Config List Dropdown
-            local configs = getConfigList()
-            if #configs == 0 then table.insert(configs, "No configs found") end
-
-            configSection:Dropdown("Select Config", "selected_config", configs, function(selected)
-                library.flags.selected_config = selected
-            end)
-
-            -- 4. Load / Delete / Autoload Actions
-            configSection:Button("📂 Load Selected Config", function()
-                local name = library.flags.selected_config
-                if name and name ~= "No configs found" then
-                    if loadConfig(name) then
-                        library:Notify({
-                            Title = "Config Loaded",
-                            Content = "Loaded settings from: " .. name,
-                            Duration = 3
-                        })
-                    else
-                        library:Notify({
-                            Title = "Error",
-                            Content = "Failed to load config.",
-                            Duration = 5
-                        })
-                    end
-                end
-            end)
-
-            configSection:Button("🗑️ Delete Selected Config", function()
-                local name = library.flags.selected_config
-                if name and name ~= "No configs found" then
-                    if deleteConfig(name) then
-                        library:Notify({
-                            Title = "Deleted",
-                            Content = "Config deleted: " .. name,
-                            Duration = 3
-                        })
-                    end
-                end
-            end)
-
-            configSection:Button("⭐ Set as Auto-Load", function()
-                local name = library.flags.selected_config
-                if name and name ~= "No configs found" then
-                    setAutoload(name)
-                    library:Notify({
-                        Title = "Auto-Load Set",
-                        Content = "This script will now auto-load: " .. name,
-                        Duration = 3
-                    })
-                end
-            end)
-        end
-
         return tabActions
     end
 
@@ -1100,7 +1104,7 @@ function library:Window(name)
     task.spawn(function()
         local autoName = getAutoload()
         if autoName then
-            wait(1) -- Wait a moment for UI to init
+            wait(1) -- Wait for UI to init
             if loadConfig(autoName) then
                 library:Notify({
                     Title = "Auto-Load",
